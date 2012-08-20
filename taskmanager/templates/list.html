@@ -1,0 +1,51 @@
+{% macro selectbox(name, options, selected = "false", onchange = "") -%}
+    <select name="{{ name }}" selected="{{ selected }}" onchange="{{ onchange }}" >
+    	{% for option in options %}
+    		<option value="{{ option }}">{{ option }}</option>
+    	{% endfor %}
+    </select>
+{%- endmacro %}
+
+<html>
+<head>
+	<script language="JavaScript" src="/static/js/jquery-1.7.2.min.js"></script>
+	<script language="JavaScript" src="/static/js/jquery-ui-1.8.22.custom.min.js"></script>	
+	<link rel="stylesheet" type="text/css" href="/static/css/cupertino/jquery-ui-1.8.22.custom.css" />
+
+	<script>
+	$(function() {
+		$( "#listitems" ).sortable({
+			placeholder: "ui-state-highlight",
+			update: function(event, ui){
+				var items = $("#listitems").sortable('toArray');
+				var value = JSON.stringify(items);
+				$.post("sort", {list: value}, function(data){
+					alert(data);
+				});
+			}
+		});
+		$( "#listitems" ).disableSelection();
+	});
+	</script>
+
+</head>
+
+<body>
+
+<div class="list">
+
+<ul id="listitems">
+	{% for item in listItems %}
+		<li class="ui-state-default" id="item{{ item.id }}">Item {{ item.id }} 
+			{% for name in optionNames %}
+				{{ selectbox("test", optionValues[name]) }}
+			{% endfor %}
+		</li>
+	{% endfor %}
+</ul>
+
+</div>	
+	
+</body>	
+	
+</html>
