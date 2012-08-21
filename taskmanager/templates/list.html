@@ -1,7 +1,7 @@
 {% macro selectbox(name, options, selected = "false", onchange = "") -%}
     <select name="{{ name }}" selected="{{ selected }}" onchange="{{ onchange }}" >
     	{% for option in options %}
-    		<option value="{{ option }}">{{ option }}</option>
+    		<option value="{{ option.value }}">{{ option.label }}</option>
     	{% endfor %}
     </select>
 {%- endmacro %}
@@ -36,9 +36,9 @@
 
 <ul id="listitems">
 	{% for item in listItems %}
-		<li class="ui-state-default" id="item{{ item.id }}">Item {{ item.id }} 
+		<li class="ui-state-default" id="item{{ item.id }}">Item {{ item.title }} 
 			{% for name in optionNames %}
-				{{ selectbox("test", optionValues[name]) }}
+				{{ selectbox(name, optionValues[name]) }}
 			{% endfor %}
 		</li>
 	{% endfor %}

@@ -46,4 +46,9 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
 
-
+class Options(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    group = db.Column(db.String(20))
+    value = db.Column(db.String(20))
+    label = db.Column(db.String(50))
+    
