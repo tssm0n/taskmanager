@@ -1,6 +1,7 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 from models import *
+import utils
 from sqlalchemy import distinct
 import json
 
@@ -13,7 +14,7 @@ def root():
 
 @app.route('/list')
 def view_list():
-    items = Task.query.order_by(Task.priority).all()
+    items = utils.load_all_tasks()
     return render_template('list.html', listItems = items, optionValues = load_option_values(), optionNames = OptionValues.option_names())
 
 @app.route('/sort', methods=['POST'])
