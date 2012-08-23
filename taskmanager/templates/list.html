@@ -1,11 +1,3 @@
-{% macro selectbox(name, options, selected = "false", onchange = "") -%}
-    <select name="{{ name }}" selected="{{ selected }}" onchange="{{ onchange }}" >
-    	{% for option in options %}
-    		<option value="{{ option.value }}">{{ option.label }}</option>
-    	{% endfor %}
-    </select>
-{%- endmacro %}
-
 <html>
 <head>
 	<script language="JavaScript" src="/static/js/jquery-1.7.2.min.js"></script>
@@ -13,19 +5,74 @@
 	<link rel="stylesheet" type="text/css" href="/static/css/cupertino/jquery-ui-1.8.22.custom.css" />
 
 	<script>
+	var itemOrder = jQuery.parseJSON('{{ itemOrder|safe }}');
+	
 	$(function() {
+		$("#newTaskPos").hide();
 		$( "#listitems" ).sortable({
 			placeholder: "ui-state-highlight",
 			update: function(event, ui){
 				var items = $("#listitems").sortable('toArray');
 				var value = JSON.stringify(items);
 				$.post("sort", {list: value}, function(data){
-					alert(data);
+					var result = jQuery.parseJSON(data);
+					for(var i in result){
+						$("#" + i + "Priority").val(result[i]);
+					}
 				});
 			}
 		});
 		$( "#listitems" ).disableSelection();
 	});
+
+	function newTask(){
+		$("#newTaskPos").show();
+		
+	}
+	function saveNew(){
+		var title = "" + $("#newTitle").val();
+		$.post("newTask", {title: title}, function(data){
+			if(data > -1){
+				 $("#listitems").prepend("<li class='ui-state-default' id='item"+data+"'>" +title+ "</li>");
+			}
+		});		
+	}
+	function completeTask(taskId){
+		$.post("completeTask", {taskId: taskId}, function(data){
+			// TODO: Callback, remove the item after some period
+		});
+	}
+	function changePriority(taskId, selectBox){
+		$.post("changePriority", {taskId: taskId, priorityIndex: selectBox.selectedIndex+1}, function(data){
+			var key = "item" + taskId;
+			var dataValue = Number(data);
+			itemOrder[key] = dataValue;
+			var prev = findPreviousId(dataValue);
+			if(prev == null){
+				var cur = $("#" + key).prev();
+				while(cur.length > 0 && cur.prev().length > 0){
+					cur = cur.prev();
+				}
+				$("#" + key).insertBefore(cur);
+			} else {
+				$("#" + prev).after($("#" + key));
+			}
+
+		});		
+	}
+	function findPreviousId(value){
+		var prev = null;
+		for(var item in itemOrder){
+			var nextValue = itemOrder[item];
+			if(nextValue > value){
+				if(prev == null || itemOrder[prev] > nextValue){
+					prev = item;
+				}
+			}
+
+		}
+		return prev;
+	}
 	</script>
 
 </head>
@@ -34,12 +81,26 @@
 
 <div class="list">
 
+<div><a href="#" onclick="newTask()">New Task</a></div>
+<div id="newTaskPos">
+	Title: <input type="text" name="newTitle"i id="newTitle">&nbsp;
+	<input type="button" onclick="saveNew()" value="Save"></button>
+</div>
+
 <ul id="listitems">
 	{% for item in listItems %}
-		<li class="ui-state-default" id="item{{ item.id }}">Item {{ item.title }} 
-			{% for name in optionNames %}
-				{{ selectbox(name, optionValues[name]) }}
+		<li class="ui-state-default" id="item{{ item.id }}">
+		<input type="checkbox" name="done{{ item.id }}" onclick="completeTask({{ item.id }})"/>
+		&nbsp;
+		<select id="item{{ item.id }}Priority"onchange="changePriority({{ item.id }}, this)">
+			{% for p in range(1,11) %}
+				<option value="{{ p }}"
+					{% if p == item.priority_index() %}
+						selected="selected"
+					{% endif %}>{{ p }}</option>
 			{% endfor %}
+		</select>
+		{{ item.title }}
 		</li>
 	{% endfor %}
 </ul>

@@ -1,0 +1,13 @@
+{% macro selectbox(name, options, selected = "false", onchange = "") -%}
+    <select name="{{ name }}" selected="{{ selected }}" onchange="{{ onchange }}" >
+        {% for option in options %}
+                <option value="{{ option.value }}">{{ option.label }}</option>
+        {% endfor %}
+    </select>
+{%- endmacro %}
+
+
+ {% for name in optionNames %}
+                                {{ selectbox(name, optionValues[name]) }}
+                        {% endfor %}
+

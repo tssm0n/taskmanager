@@ -16,16 +16,26 @@ task_tags = db.Table('task_tags', db.Model.metadata,
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(150))
-    priority = db.Column(db.Integer)
+    title = db.Column(db.String(150),nullable=False)
+    priority = db.Column(db.Integer,nullable=False)
     details = db.Column(db.Text)
     tags = db.relationship("Tag",
                     secondary=task_tags,
                     backref="tasks")
     last_update = db.Column(db.DateTime)
+    complete = db.Column(db.Boolean,nullable=False)
 
     def __repr__(self):
-	return '<Task %s>' % self.id
+        return '<Task %s>' % self.id
+    
+    def priority_index(self):
+        p = self.priority / 100000
+        p = 10 - p
+        if p == 0:
+            p = 1
+        if p > 10:
+            p = 10
+        return p
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
