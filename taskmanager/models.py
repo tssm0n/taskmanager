@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.expression import desc
 
 #uri = 'sqlite:////tmp/test.db'
 uri = 'mysql+mysqldb://taskman:taskman@localhost/taskmanager'
@@ -7,6 +8,7 @@ uri = 'mysql+mysqldb://taskman:taskman@localhost/taskmanager'
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
+app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 
 task_tags = db.Table('task_tags', db.Model.metadata,
@@ -24,6 +26,7 @@ class Task(db.Model):
                     backref="tasks")
     last_update = db.Column(db.DateTime)
     complete = db.Column(db.Boolean,nullable=False)
+    list = db.Column(db.Integer, db.ForeignKey('list.id'))
 
     def __repr__(self):
         return '<Task %s>' % self.id
@@ -40,21 +43,28 @@ class Task(db.Model):
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
+    list = db.Column(db.Integer, db.ForeignKey('list.id'))
+    parent = db.Column(db.Integer, db.ForeignKey('tag.id'))
 
-user_group = db.Table('user_group', db.Model.metadata,
+user_list = db.Table('user_list', db.Model.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
-    db.Column('group_id', db.Integer, db.ForeignKey('group.id'))
+    db.Column('list_id', db.Integer, db.ForeignKey('list.id'))
 )
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
-    groups = db.relationship("Group", secondary=user_group, backref="users")
+    lists = db.relationship("List", secondary=user_list, backref="users")
+    default_list = db.Column(db.Integer)
 
 
-class Group(db.Model):
+class List(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
+    tasks = db.relationship("Task",
+	primaryjoin="and_(Task.list==List.id, Task.complete==False)",
+	order_by=desc(Task.priority))
+    tags = db.relationship("Tag")
 
 class Options(db.Model):
     id = db.Column(db.Integer, primary_key=True)

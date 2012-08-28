@@ -12,6 +12,7 @@ def item_order(items):
     return orders    
     
 def reorganize(new_list):
+    # TODO: This should take in the current list ID so that only the tasks in the current list are sorted
     organizer = TaskReorganizer(new_list)
     organizer.process()
     result = {}
@@ -59,7 +60,8 @@ class TaskReorganizer:
                     if index == len(tasks) - 1:
                         task.priority = prev.priority - 250
                         self.dirty.append(task)
-                        # TODO: Check for negative priority
+                        if task.priority < 0:
+				task.priority = 1
                     else:
                         if tasks[index+1].priority < prev.priority:
                             task.priority = (prev.priority + tasks[index+1].priority)/2

@@ -3,9 +3,43 @@
 	<script language="JavaScript" src="/static/js/jquery-1.7.2.min.js"></script>
 	<script language="JavaScript" src="/static/js/jquery-ui-1.8.22.custom.min.js"></script>	
 	<link rel="stylesheet" type="text/css" href="/static/css/cupertino/jquery-ui-1.8.22.custom.css" />
+	<style type="text/css">
 
+	body,
+	html {
+		margin:0;
+		padding:0;
+		color:#000;
+	}
+
+    #listitems {
+    	float:left;
+    	width:600px;
+	padding:3px;
+    }
+    #tagdiv {
+   	float:left;
+    	width:170px;
+	list-style-type: none;
+	border-style: dotted;
+	border-width: 1px;
+    }
+    #tags {
+	list-style-type: none;
+    }
+
+    ul {
+	list-style-type: none;
+    }
+.icon-border {display: inline-block }
+	</style>
 	<script>
 	var itemOrder = jQuery.parseJSON('{{ itemOrder|safe }}');
+	
+	$.ajaxSetup ({
+    	cache: false
+	});
+
 	
 	$(function() {
 		$("#newTaskPos").hide();
@@ -29,11 +63,16 @@
 		$("#newTaskPos").show();
 		
 	}
+	
+	var beforeTitle = '<input type="checkbox" name="done[[id]]" onclick="completeTask([[id]])"/>&nbsp;';
+	beforeTitle += ' &nbsp;<select id="item[id]Priority"onchange="changePriority([[id]], this)">{% for p in range(1,11) %}<option value="{{ p }}"{% if p == 1 %}selected="selected"{% endif %}>{{ p }}</option>{% endfor %}</select>&nbsp;';
+
 	function saveNew(){
 		var title = "" + $("#newTitle").val();
-		$.post("newTask", {title: title}, function(data){
+		$.post("newTask", {title: title, listId: {{ session['selected_list'] }} }, function(data){
 			if(data > -1){
-				 $("#listitems").prepend("<li class='ui-state-default' id='item"+data+"'>" +title+ "</li>");
+				 var insertBefore = beforeTitle.replace(/\[\[id\]\]/g,data);
+				 $("#listitems").prepend("<li class='ui-state-default' id='item"+data+"'>"+insertBefore +title+"</li>");
 			}
 		});		
 	}
@@ -55,6 +94,11 @@
 				}
 				$("#" + key).insertBefore(cur);
 			} else {
+				var prevElement = $("#" + prev);
+				while(prevElement.next().length > 0 && itemOrder[prevElement.next().attr("id")] == itemOrder[prev]){
+					prevElement = prevElement.next();
+					prev = prevElement.attr("id");
+				}
 				$("#" + prev).after($("#" + key));
 			}
 
@@ -73,6 +117,13 @@
 		}
 		return prev;
 	}
+	function changeList(){
+		// TODO: Change List
+	}
+	
+	function changeTag(tagId){
+		// TODO: Change Tag
+	}	
 	</script>
 
 </head>
@@ -80,10 +131,27 @@
 <body>
 
 <div class="list">
-
-<div><a href="#" onclick="newTask()">New Task</a></div>
+<div id="userName">Welcome {{ session['user'].name }}.</div>
+<div id="lists"><select id="selectList" name="selectList" onchange="changeList()"
+	class="ui-button ui-widget ui-state-default ui-corner-all">
+		{% for list in lists %}
+			<option value="{{ list.id }}"
+				{% if list.id == selectedList %}
+					selected="true"
+				{% endif %}>{{ list.name }}</option>
+		{% endfor %}
+	
+</select></div>
+<div id="tagdiv" class="ui-widget-content">
+	<ul id="tags">
+	{% for tag in tags %}
+		<li id="tag{{ tag.id }}"><a href="#" onclick="changeTag({{ tag.id }})">{{ tag.name }}</a></li>
+	{% endfor %}
+	</ul>
+</div>
+<div><a href="#" onclick="newTask()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New Task</a></div>
 <div id="newTaskPos">
-	Title: <input type="text" name="newTitle"i id="newTitle">&nbsp;
+	Title: <input type="text" name="newTitle"i id="newTitle" autocomplete="off">&nbsp;
 	<input type="button" onclick="saveNew()" value="Save"></button>
 </div>
 

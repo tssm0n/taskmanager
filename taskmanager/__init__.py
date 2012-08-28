@@ -7,6 +7,7 @@ import json
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+app.secret_key = 'asd123jf23\/\/\/1231aa'
 
 @app.route('/')
 def root():
@@ -14,12 +15,26 @@ def root():
 
 @app.route('/list')
 def view_list():
-    items = utils.load_all_tasks()
+    #TODO: This is a login workaround
+    if not session.has_key('user'):
+        session['user'] = User.query.get(1)
+    if not session.has_key('selected_list'):
+        session['selected_list'] = session['user'].default_list
+
+    user = session['user']
+    selected_list = session['selected_list']
+    current_list = List.query.get(selected_list)
+        # TODO: When loading tasks, filter out the completed ones
+    lists = user.lists
+    items = current_list.tasks
     return render_template('list.html', 
                            listItems = items,
                            itemOrder = json.dumps(utils.item_order(items)),
-                           optionValues = load_option_values(), 
-                           optionNames = OptionValues.option_names())
+			               lists = lists,
+                           selectedList = session['selected_list'],
+			   tags = current_list.tags)
+                #optionValues = load_option_values(), 
+                #optionNames = OptionValues.option_names())
 
 @app.route('/sort', methods=['POST'])
 def perform_sort():
@@ -35,6 +50,8 @@ def new_task():
     task.priority = max_priority + 1000
     task.title = title
     task.complete = False
+    task.list = int(request.form['listId'])
+    # TODO: Before saving, check that the user has permission to save to that list
     db.session.add(task)
     db.session.commit()
     return "%s" % (task.id)    
@@ -52,7 +69,7 @@ def change_priority():
     task_id = request.form['taskId']
     priority_index = request.form['priorityIndex']
     task = Task.query.get(int(task_id))   
-    task.priority = ((11-int(priority_index))*100000 + 50000)
+    task.priority = ((10-int(priority_index))*100000 + 50000)
     db.session.commit()
     return "%s" % (task.priority) 
 
