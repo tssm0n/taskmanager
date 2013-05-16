@@ -56,7 +56,12 @@
 				});
 			}
 		});
+  		$('#listitems input').bind('click.sortable mousedown.sortable',function(ev){
+    		ev.target.focus();
+  		});		
 		$( "#listitems" ).disableSelection();
+		var tagValues = ["asd", "asdf"];
+		$('input[id$="AddTag"]').autocomplete({source: tagValues});
 	});
 
 	function newTask(){
@@ -123,7 +128,11 @@
 	
 	function changeTag(tagId){
 		// TODO: Change Tag
-	}	
+	}
+	
+	function addTag(tagId){
+		// TODO: Add Tag
+	}
 	</script>
 
 </head>
@@ -169,6 +178,13 @@
 			{% endfor %}
 		</select>
 		{{ item.title }}
+		&nbsp;
+		<span id="item{{ item.id }}Tags">
+			{% for tag in item.tags %}
+				{{ tag.name }} &nbsp;
+			{% endfor %}
+			<input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})"/>
+		</span>
 		</li>
 	{% endfor %}
 </ul>
