@@ -1,6 +1,8 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
+import flask.ext.restless
 from models import *
+from auth import *
 import utils
 from sqlalchemy import distinct
 import json
@@ -9,6 +11,12 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 app.secret_key = 'asd123jf23\/\/\/1231aa'
 
+manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
+manager.create_api(Task, methods=['GET'], 
+	preprocessors=dict(GET_SINGLE=[api_auth],
+	GET_MANY=[api_auth]))
+#TODO: Implement pre and post processors on the rest API to filter available tasks
+
 @app.route('/')
 def root():
     return "Hello World!"
@@ -16,8 +24,7 @@ def root():
 @app.route('/list')
 def view_list():
     #TODO: This is a login workaround
-    if not session.has_key('user'):
-        session['user'] = User.query.get(1)
+    check_auth()
     if not session.has_key('selected_list'):
         session['selected_list'] = session['user'].default_list
 
