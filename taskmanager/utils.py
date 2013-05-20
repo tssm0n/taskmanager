@@ -22,6 +22,19 @@ def reorganize(new_list):
         result[key] = task.priority_index()
     db.session.commit()    
     return result 
+
+def find_tag(user_id, task_list, tag):
+    # TODO: Filter based on the user's ID or list...
+    tag_obj = Tag.query.filter_by(name=tag).first()
+    print "tag: %s"%(tag_obj)
+    if tag_obj is not None:
+	return tag_obj
+    tag_obj = Tag()
+    tag_obj.name = tag
+    list_obj = List.query.get(task_list)
+    list_obj.tags.append(tag_obj)
+    db.session.add(tag_obj)
+    return tag_obj
     
 class TaskReorganizer:
     def __init__(self, new_list, original = None):

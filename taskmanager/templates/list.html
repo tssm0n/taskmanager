@@ -33,7 +33,7 @@
     }
     .task_title {
 	display:inline-block;
-	width: 60%;
+	width: 40%;
     }
     .icon-border {
         display: inline-block 
@@ -64,14 +64,10 @@
 				});
 			}
 		});
-		//$('#listitems input').bind('click.sortable mousedown.sortable',function(ev){
-    		//ev.target.focus();
-  		//});
-		//$("select").mousemove(function(e){ $( "#listitems" ).sortable("destroy"); });		
-		//$( "#listitems" ).disableSelection();
+		// TODO: Load tag values
 		var tagValues = ["asd", "asdf"];
 		$('input[id$="AddTag"]').autocomplete({source: tagValues});
-		//$('.sortable').sortable({connectWith: ".sortable"});
+		$("[id$=AddTag]").hide();
 	});
 
 	function newTask(){
@@ -140,12 +136,19 @@
 		// TODO: Change Tag
 	}
 	
-	function addTag(tagId){
-		// TODO: Add Tag
+	function addTag(taskId){
+		var tags = $("#item" + taskId + "AddTag").val();
+		if(tags.trim() == ""){
+			return;
+		}
+		alert("adding " + tags);
+		$.post("/addTag", {"taskId" : taskId, "tag": tags}, function(data) {
+			alert(data);
+		}).fail(function() { alert("Error adding tag") });
 	}
 
 	function tagBox(tagId){
-		// TODO
+		$("#item" + tagId + "AddTag").show();
 	}
 	function editTitle(tagId){
 		// TODO
@@ -201,6 +204,7 @@
                         {% for tag in item.tags %}
                                 {{ tag.name }} &nbsp;
                         {% endfor %}
+			<input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:inline-block"/>
 			<span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
                 </span>
 		</li>

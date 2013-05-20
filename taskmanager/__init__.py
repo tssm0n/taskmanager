@@ -15,7 +15,10 @@ manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Task, methods=['GET'], 
 	preprocessors=dict(GET_SINGLE=[api_auth],
 	GET_MANY=[api_auth]))
-#TODO: Implement pre and post processors on the rest API to filter available tasks
+manager.create_api(Tag, methods=['GET'],
+        preprocessors=dict(GET_SINGLE=[api_auth],
+        GET_MANY=[api_auth]))
+#TODO: Implement pre and post processors on the rest API to filter available tasks 
 
 @app.route('/')
 def root():
@@ -28,7 +31,7 @@ def view_list():
     if not session.has_key('selected_list'):
         session['selected_list'] = session['user'].default_list
 
-    user = session['user']
+    user = User.query.get(session['user'].id)
     selected_list = session['selected_list']
     current_list = List.query.get(selected_list)
         # TODO: When loading tasks, filter out the completed ones
@@ -79,6 +82,21 @@ def change_priority():
     task.priority = ((10-int(priority_index))*100000 + 50000)
     db.session.commit()
     return "%s" % (task.priority) 
+    
+@app.route('/addTag', methods=['POST'])
+def add_tag():
+    task_id = request.form['taskId']
+    task = Task.query.get(int(task_id))
+    task_list = task.list
+    tag_text = request.form['tag']
+    tags = tag_text.split(",")
+    user = session['user']
+    for tag in tags:
+	print "%s %s"%(tag, task_list)
+    	tag_obj = utils.find_tag(user.id, task_list, tag)
+        task.tags.append(tag_obj)
+    db.session.commit()
+    return tag_text	        
 
 def load_option_values():
     return OptionValues()
@@ -104,3 +122,4 @@ class OptionValues:
     
     def __getitem__(self, name):
         return self.values[name]
+
