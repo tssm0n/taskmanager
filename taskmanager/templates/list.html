@@ -35,9 +35,11 @@
 	display:inline-block;
 	width: 60%;
     }
-.icon-border {display: inline-block }
-	</style>
-	<script>
+    .icon-border {
+        display: inline-block 
+    }
+</style>
+<script>
 	var itemOrder = jQuery.parseJSON('{{ itemOrder|safe }}');
 	
 	$.ajaxSetup ({
@@ -148,7 +150,7 @@
 	function editTitle(tagId){
 		// TODO
 	}
-	</script>
+</script>
 
 </head>
 
