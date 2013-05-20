@@ -12,7 +12,7 @@ app.config.from_object(__name__)
 app.secret_key = 'asd123jf23\/\/\/1231aa'
 
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Task, methods=['GET'], 
+manager.create_api(Task, methods=['GET','PUT','PATCH'], 
 	preprocessors=dict(GET_SINGLE=[api_auth],
 	GET_MANY=[api_auth]))
 manager.create_api(Tag, methods=['GET'],

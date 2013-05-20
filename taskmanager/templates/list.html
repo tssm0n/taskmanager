@@ -35,6 +35,9 @@
 	display:inline-block;
 	width: 40%;
     }
+    .task_tags {
+	font-style: italic;
+    }
     .icon-border {
         display: inline-block 
     }
@@ -124,7 +127,7 @@
 					prev = item;
 				}
 			}
-
+			
 		}
 		return prev;
 	}
@@ -135,23 +138,57 @@
 	function changeTag(tagId){
 		// TODO: Change Tag
 	}
+
+	function changeTask(taskId, fields){
+		$.ajax({url: "/api/task/" + taskId,
+			type: "PUT",
+			data: JSON.stringify(fields),
+			headers: {"Content-Type": "application/json"},
+			dataType: "json"});
+		// TODO: Handle error
+	}
 	
 	function addTag(taskId){
 		var tags = $("#item" + taskId + "AddTag").val();
 		if(tags.trim() == ""){
 			return;
 		}
-		alert("adding " + tags);
 		$.post("/addTag", {"taskId" : taskId, "tag": tags}, function(data) {
-			alert(data);
+			$("#item" + taskId + "AddTag").hide();
+			$("#item" + taskId + "AddTag").val("");
+			// TODO: Update autocomplete
+			updateTaskView(taskId);
 		}).fail(function() { alert("Error adding tag") });
 	}
 
 	function tagBox(tagId){
-		$("#item" + tagId + "AddTag").show();
+		$("#item" + tagId + "AddTag").toggle();
 	}
-	function editTitle(tagId){
-		// TODO
+	function editTitle(taskId){
+		loadTask(taskId, function(task){
+			var html = "<input type='text' value='" + task.title + 
+				"' onchange='updateTitle(" + taskId + ", this)'></input>";
+			$("#item" + taskId + "Title").html(html);			
+		});
+	}
+	function updateTitle(taskId, inputField){
+		var title = $(inputField).val();
+		$("#item" + taskId + "Title").html(title);
+		changeTask(taskId, {"title": title});
+	}
+	function loadTask(taskId, callback){
+                $.get("/api/task/" + taskId, callback);
+		// TODO: Handle failure
+	}
+	function updateTaskView(taskId){
+		loadTask(taskId, function(task) {
+			var tagText = "";
+			tags = jQuery.map(task.tags, function(tag) {
+				tagText += tag.name + " &nbsp;";
+				return tag.name;
+			});
+			$("#item" + task.id + "Tags").html(tagText);
+		});
 	}
 </script>
 
@@ -197,16 +234,16 @@
                         {% endfor %}
                 </select></span>
 		&nbsp;
-		<div class="task_title">{{ item.title }}</div>
+		<div class="task_title" id="item{{ item.id }}Title">{{ item.title }}</div>
 		&nbsp;
 		<span class="ui-icon ui-icon-pencil" style="display:inline-block" onclick="editTitle('{{ item.id }}');"></span>
                 <span id="item{{ item.id }}Tags" class="task_tags">
                         {% for tag in item.tags %}
                                 {{ tag.name }} &nbsp;
                         {% endfor %}
-			<input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:inline-block"/>
-			<span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
-                </span>
+		</span>
+		<input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:inline-block"/>
+		<span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
 		</li>
 	{% endfor %}
 </ul>
