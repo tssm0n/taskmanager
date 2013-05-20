@@ -12,7 +12,7 @@
 		color:#000;
 	}
 
-    #listitems {
+    .sortable {
     	float:left;
     	width:600px;
 	padding:3px;
@@ -31,6 +31,10 @@
     ul {
 	list-style-type: none;
     }
+    .task_title {
+	display:inline-block;
+	width: 60%;
+    }
 .icon-border {display: inline-block }
 	</style>
 	<script>
@@ -43,10 +47,12 @@
 	
 	$(function() {
 		$("#newTaskPos").hide();
-		$( "#listitems" ).sortable({
+		$( ".sortable" ).sortable({
 			placeholder: "ui-state-highlight",
+			cancel: "input,textarea,button,select,option",
+			connectWith: ".sortable",
 			update: function(event, ui){
-				var items = $("#listitems").sortable('toArray');
+				var items = $(".sortable").sortable('toArray');
 				var value = JSON.stringify(items);
 				$.post("sort", {list: value}, function(data){
 					var result = jQuery.parseJSON(data);
@@ -56,12 +62,14 @@
 				});
 			}
 		});
-  		$('#listitems input').bind('click.sortable mousedown.sortable',function(ev){
-    		ev.target.focus();
-  		});		
-		$( "#listitems" ).disableSelection();
+		//$('#listitems input').bind('click.sortable mousedown.sortable',function(ev){
+    		//ev.target.focus();
+  		//});
+		//$("select").mousemove(function(e){ $( "#listitems" ).sortable("destroy"); });		
+		//$( "#listitems" ).disableSelection();
 		var tagValues = ["asd", "asdf"];
 		$('input[id$="AddTag"]').autocomplete({source: tagValues});
+		//$('.sortable').sortable({connectWith: ".sortable"});
 	});
 
 	function newTask(){
@@ -69,15 +77,15 @@
 		
 	}
 	
-	var beforeTitle = '<input type="checkbox" name="done[[id]]" onclick="completeTask([[id]])"/>&nbsp;';
-	beforeTitle += ' &nbsp;<select id="item[id]Priority"onchange="changePriority([[id]], this)">{% for p in range(1,11) %}<option value="{{ p }}"{% if p == 1 %}selected="selected"{% endif %}>{{ p }}</option>{% endfor %}</select>&nbsp;';
+	var beforeTitle = '<input type="checkbox" name="done[[id]]" onclick="completeTask([[id]])"/>';
+	beforeTitle += ' &nbsp;<select id="item[id]Priority" onchange="changePriority([[id]], this)">{% for p in range(1,11) %}<option value="{{ p }}"{% if p == 1 %}selected="selected"{% endif %}>{{ p }}</option>{% endfor %}</select>&nbsp;';
 
 	function saveNew(){
 		var title = "" + $("#newTitle").val();
 		$.post("newTask", {title: title, listId: {{ session['selected_list'] }} }, function(data){
 			if(data > -1){
 				 var insertBefore = beforeTitle.replace(/\[\[id\]\]/g,data);
-				 $("#listitems").prepend("<li class='ui-state-default' id='item"+data+"'>"+insertBefore +title+"</li>");
+				 $(".sortable").prepend("<li class='ui-state-default' id='item"+data+"'>"+insertBefore +title+"</li>");
 			}
 		});		
 	}
@@ -133,6 +141,13 @@
 	function addTag(tagId){
 		// TODO: Add Tag
 	}
+
+	function tagBox(tagId){
+		// TODO
+	}
+	function editTitle(tagId){
+		// TODO
+	}
 	</script>
 
 </head>
@@ -164,27 +179,28 @@
 	<input type="button" onclick="saveNew()" value="Save"></button>
 </div>
 
-<ul id="listitems">
+<ul id="listitems1" class="sortable">
 	{% for item in listItems %}
-		<li class="ui-state-default" id="item{{ item.id }}">
+		<li class="ui-state-default ui-corner-all" id="item{{ item.id }}">
 		<input type="checkbox" name="done{{ item.id }}" onclick="completeTask({{ item.id }})"/>
+		<span id="sel"><select id="item{{ item.id }}Priority" onchange="changePriority({{ item.id }}, this)">
+                        {% for p in range(1,11) %}
+                                <option value="{{ p }}"
+                                        {% if p == item.priority_index() %}
+                                                selected="selected"
+                                        {% endif %}>{{ p }}</option>
+                        {% endfor %}
+                </select></span>
 		&nbsp;
-		<select id="item{{ item.id }}Priority"onchange="changePriority({{ item.id }}, this)">
-			{% for p in range(1,11) %}
-				<option value="{{ p }}"
-					{% if p == item.priority_index() %}
-						selected="selected"
-					{% endif %}>{{ p }}</option>
-			{% endfor %}
-		</select>
-		{{ item.title }}
+		<div class="task_title">{{ item.title }}</div>
 		&nbsp;
-		<span id="item{{ item.id }}Tags">
-			{% for tag in item.tags %}
-				{{ tag.name }} &nbsp;
-			{% endfor %}
-			<input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})"/>
-		</span>
+		<span class="ui-icon ui-icon-pencil" style="display:inline-block" onclick="editTitle('{{ item.id }}');"></span>
+                <span id="item{{ item.id }}Tags" class="task_tags">
+                        {% for tag in item.tags %}
+                                {{ tag.name }} &nbsp;
+                        {% endfor %}
+			<span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
+                </span>
 		</li>
 	{% endfor %}
 </ul>
