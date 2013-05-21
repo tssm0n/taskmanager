@@ -25,7 +25,8 @@ def root():
     return "Hello World!"
 
 @app.route('/list')
-def view_list():
+@app.route('/listtag/<tagid>')
+def view_list(tagid=None):
     #TODO: This is a login workaround
     check_auth()
     if not session.has_key('selected_list'):
@@ -36,15 +37,16 @@ def view_list():
     current_list = List.query.get(selected_list)
         # TODO: When loading tasks, filter out the completed ones
     lists = user.lists
-    items = current_list.tasks
+    if tagid is None:
+        items = current_list.tasks
+    else:
+        items = utils.find_tasks_by_tag_id(tagid)
     return render_template('list.html', 
                            listItems = items,
                            itemOrder = json.dumps(utils.item_order(items)),
 			               lists = lists,
                            selectedList = session['selected_list'],
 			   tags = current_list.tags)
-                #optionValues = load_option_values(), 
-                #optionNames = OptionValues.option_names())
 
 @app.route('/sort', methods=['POST'])
 def perform_sort():

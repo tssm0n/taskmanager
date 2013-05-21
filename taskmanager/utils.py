@@ -35,6 +35,12 @@ def find_tag(user_id, task_list, tag):
     list_obj.tags.append(tag_obj)
     db.session.add(tag_obj)
     return tag_obj
+
+def find_tasks_by_tag_id(tag_id):
+    tag = Tag.query.get(int(tag_id))
+    if tag is None:
+        return []
+    return Task.query.filter(Task.tags.contains(tag)).all()
     
 class TaskReorganizer:
     def __init__(self, new_list, original = None):
