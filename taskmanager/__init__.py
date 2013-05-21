@@ -26,7 +26,8 @@ def root():
 
 @app.route('/list')
 @app.route('/listtag/<tagid>')
-def view_list(tagid=None):
+@app.route('/list/<listid>')
+def view_list(tagid=None, listid=None):
     #TODO: This is a login workaround
     check_auth()
     if not session.has_key('selected_list'):
@@ -37,10 +38,11 @@ def view_list(tagid=None):
     current_list = List.query.get(selected_list)
         # TODO: When loading tasks, filter out the completed ones
     lists = user.lists
-    if tagid is None:
-        items = current_list.tasks
+    if tagid is None and listid is None:
+	items = current_list.tasks
     else:
-        items = utils.find_tasks_by_tag_id(tagid)
+        items = utils.find_tasks(tagid, listid)
+
     return render_template('list.html', 
                            listItems = items,
                            itemOrder = json.dumps(utils.item_order(items)),
@@ -86,8 +88,8 @@ def change_priority():
     return "%s" % (task.priority) 
     
 @app.route('/addTag', methods=['POST'])
-@authed
 def add_tag():
+    check_auth()
     task_id = request.form['taskId']
     task = Task.query.get(int(task_id))
     task_list = task.list
@@ -100,6 +102,19 @@ def add_tag():
         task.tags.append(tag_obj)
     db.session.commit()
     return tag_text	        
+
+@app.route('/addList', methods=['POST'])
+def add_list():
+    # TODO: Check list already exists
+    check_auth()
+    list_name = request.form['newListName']
+    new_list = List()
+    new_list.name = list_name
+    db.session.add(new_list)
+    user = User.query.get(session['user'].id)
+    user.lists.append(new_list)
+    db.session.commit()
+    return redirect(url_for('view_list', listid = new_list.id))
 
 def load_option_values():
     return OptionValues()

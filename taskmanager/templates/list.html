@@ -52,6 +52,7 @@
 	
 	$(function() {
 		$("#newTaskPos").hide();
+		$("#newListPos").hide();
 		$( ".sortable" ).sortable({
 			placeholder: "ui-state-highlight",
 			cancel: "input,textarea,button,select,option",
@@ -74,8 +75,11 @@
 	});
 
 	function newTask(){
-		$("#newTaskPos").show();
-		
+		$("#newTaskPos").toggle();
+	}
+
+	function newList(){
+		$("#newListPos").toggle();
 	}
 	
 	function saveNew(){
@@ -205,7 +209,15 @@
 				{% endif %}>{{ list.name }}</option>
 		{% endfor %}
 	
-</select></div>
+</select>
+<div><a href="#" onclick="newList()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New List</a></div>
+<div id="newListPos">
+	<form method="post" action="addList">
+             Name: <input type="text" name="newListName" id="newListName" autocomplete="off">&nbsp;
+             <input type="submit" value="Save"></input>
+        </form>
+</div>
+</div>
 <div id="tagdiv" class="ui-widget-content">
 	<ul id="tags">
 	{% for tag in tags %}
@@ -215,7 +227,7 @@
 </div>
 <div><a href="#" onclick="newTask()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New Task</a></div>
 <div id="newTaskPos">
-	Title: <input type="text" name="newTitle"i id="newTitle" autocomplete="off">&nbsp;
+	Title: <input type="text" name="newTitle" id="newTitle" autocomplete="off">&nbsp;
 	<input type="button" onclick="saveNew()" value="Save"></button>
 </div>
 

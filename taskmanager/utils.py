@@ -36,11 +36,16 @@ def find_tag(user_id, task_list, tag):
     db.session.add(tag_obj)
     return tag_obj
 
-def find_tasks_by_tag_id(tag_id):
-    tag = Tag.query.get(int(tag_id))
-    if tag is None:
-        return []
-    return Task.query.filter(Task.tags.contains(tag)).all()
+def find_tasks(tag_id, list_id):
+    query = Task.query
+    if tag_id is not None:
+        tag = Tag.query.get(int(tag_id))
+        if tag is None:
+            return []
+        query = query.filter(Task.tags.contains(tag))
+    if list_id is not None:
+        query = query.filter(Task.list==int(list_id))
+    return query.all()
     
 class TaskReorganizer:
     def __init__(self, new_list, original = None):
