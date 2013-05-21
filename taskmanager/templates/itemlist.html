@@ -1,0 +1,23 @@
+ <li class="ui-state-default ui-corner-all" id="item{{ item.id }}">
+ 
+               <input type="checkbox" name="done{{ item.id }}" onclick="completeTask({{ item.id }})"/>
+                <span id="sel"><select id="item{{ item.id }}Priority" onchange="changePriority({{ item.id }}, this)">
+                        {% for p in range(1,11) %}
+                                <option value="{{ p }}"
+                                        {% if p == item.priority_index() %}
+                                                selected="selected"
+                                        {% endif %}>{{ p }}</option>
+                        {% endfor %}
+                </select></span>
+                &nbsp;
+                <div class="task_title" id="item{{ item.id }}Title">{{ item.title }}</div>
+                &nbsp;
+                <span class="ui-icon ui-icon-pencil" style="display:inline-block" onclick="editTitle('{{ item.id }}');"></span>
+                <span id="item{{ item.id }}Tags" class="task_tags">
+                        {% for tag in item.tags %}
+                                {{ tag.name }} &nbsp;
+                        {% endfor %}
+                </span>
+                <input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:inline-block"/>
+                <span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
+</li>

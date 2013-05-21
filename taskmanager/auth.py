@@ -25,3 +25,12 @@ def api_auth(search_params=None, **kw):
     #    search_params['filters'] = []
     # *Append* your filter to the list of filters.
     #search_params['filters'].append(filt)
+
+
+class authed:
+    def __init__(self, f):
+	self.__name__ = f.__name__
+        self.f = f
+    
+    def __call__(self):
+        return self.f()

@@ -66,7 +66,7 @@ def new_task():
     # TODO: Before saving, check that the user has permission to save to that list
     db.session.add(task)
     db.session.commit()
-    return "%s" % (task.id)    
+    return render_template('itemlist.html', item=task)    
 
 @app.route('/completeTask', methods=['POST'])
 def complete_task():
@@ -86,6 +86,7 @@ def change_priority():
     return "%s" % (task.priority) 
     
 @app.route('/addTag', methods=['POST'])
+@authed
 def add_tag():
     task_id = request.form['taskId']
     task = Task.query.get(int(task_id))

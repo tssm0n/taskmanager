@@ -78,17 +78,15 @@
 		
 	}
 	
-	var beforeTitle = '<input type="checkbox" name="done[[id]]" onclick="completeTask([[id]])"/>';
-	beforeTitle += ' &nbsp;<select id="item[id]Priority" onchange="changePriority([[id]], this)">{% for p in range(1,11) %}<option value="{{ p }}"{% if p == 1 %}selected="selected"{% endif %}>{{ p }}</option>{% endfor %}</select>&nbsp;';
-
 	function saveNew(){
 		var title = "" + $("#newTitle").val();
 		$.post("newTask", {title: title, listId: {{ session['selected_list'] }} }, function(data){
-			if(data > -1){
-				 var insertBefore = beforeTitle.replace(/\[\[id\]\]/g,data);
-				 $(".sortable").prepend("<li class='ui-state-default' id='item"+data+"'>"+insertBefore +title+"</li>");
-			}
+			$(".sortable").prepend(data);
+			$("[id$=AddTag]").hide();
+			$("#newTitle").val("");
+			$("#newTaskPos").hide();
 		});		
+		// TODO: Handle error
 	}
 	function completeTask(taskId){
 		$.post("completeTask", {taskId: taskId}, function(data){
@@ -223,28 +221,7 @@
 
 <ul id="listitems1" class="sortable">
 	{% for item in listItems %}
-		<li class="ui-state-default ui-corner-all" id="item{{ item.id }}">
-		<input type="checkbox" name="done{{ item.id }}" onclick="completeTask({{ item.id }})"/>
-		<span id="sel"><select id="item{{ item.id }}Priority" onchange="changePriority({{ item.id }}, this)">
-                        {% for p in range(1,11) %}
-                                <option value="{{ p }}"
-                                        {% if p == item.priority_index() %}
-                                                selected="selected"
-                                        {% endif %}>{{ p }}</option>
-                        {% endfor %}
-                </select></span>
-		&nbsp;
-		<div class="task_title" id="item{{ item.id }}Title">{{ item.title }}</div>
-		&nbsp;
-		<span class="ui-icon ui-icon-pencil" style="display:inline-block" onclick="editTitle('{{ item.id }}');"></span>
-                <span id="item{{ item.id }}Tags" class="task_tags">
-                        {% for tag in item.tags %}
-                                {{ tag.name }} &nbsp;
-                        {% endfor %}
-		</span>
-		<input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:inline-block"/>
-		<span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
-		</li>
+		{% include 'itemlist.html' %}
 	{% endfor %}
 </ul>
 
