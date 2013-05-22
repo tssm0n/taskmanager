@@ -8,7 +8,7 @@ uri = 'mysql+mysqldb://taskman:taskman@localhost/taskmanager'
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
-app.config['SQLALCHEMY_ECHO'] = True
+#app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_POOL_RECYCLE'] = 3600
 db = SQLAlchemy(app)
 

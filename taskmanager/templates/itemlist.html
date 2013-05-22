@@ -1,6 +1,6 @@
  <li class="ui-state-default ui-corner-all" id="item{{ item.id }}">
  
-               <input type="checkbox" name="done{{ item.id }}" onclick="completeTask({{ item.id }})"/>
+               <input type="checkbox" name="done{{ item.id }}" id="done{{ item.id }}" onclick="completeTask({{ item.id }})"/>
                 <span id="sel"><select id="item{{ item.id }}Priority" onchange="changePriority({{ item.id }}, this)">
                         {% for p in range(1,11) %}
                                 <option value="{{ p }}"

@@ -64,7 +64,7 @@
 			update: function(event, ui){
 				var items = $(".sortable").sortable('toArray');
 				var value = JSON.stringify(items);
-				$.post("sort", {list: value}, function(data){
+				$.post(urlRoot + "sort", {list: value}, function(data){
 					var result = jQuery.parseJSON(data);
 					for(var i in result){
 						$("#" + i + "Priority").val(result[i]);
@@ -98,8 +98,13 @@
 	}
 	function completeTask(taskId){
 		$.post(urlRoot + "completeTask", {taskId: taskId}, function(data){
-			// TODO: Callback, remove the item after some period
+			setTimeout(function() { hideCompleted(taskId) }, 6000)
 		});
+	}
+        function hideCompleted(taskId){
+	    if($("#done" + taskId).is(':checked')){
+		$("#item" + taskId).hide();
+	    }
 	}
 	function changePriority(taskId, selectBox){
 		$.post(urlRoot + "changePriority", {taskId: taskId, priorityIndex: selectBox.selectedIndex+1}, function(data){

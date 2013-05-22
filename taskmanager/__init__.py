@@ -39,18 +39,22 @@ def view_list(tagid=None, listid=None):
     if not session.has_key('selected_list'):
         session['selected_list'] = session['user'].default_list
 
+    if tagid is not None:
+        tag = Tag.query.get(int(tagid))
+        session['selected_list'] = tag.list
     if listid is not None:
         session['selected_list'] = listid
 
     user = User.query.get(session['user'].id)
     selected_list = session['selected_list']
+    app.logger.debug("Tag: %s, List: %s, Saved List: %s, Passed List: %s"%(tagid, listid, session['selected_list'], selected_list))
     current_list = List.query.get(selected_list)
         # TODO: When loading tasks, filter out the completed ones
     lists = user.lists
-    if tagid is None and listid is None:
-	items = current_list.tasks
-    else:
-        items = utils.find_tasks(tagid, listid)
+
+    items = utils.find_tasks(tagid, selected_list, False)
+
+    app.logger.debug("Tag: %s, List: %s, Saved List: %s, Passed List: %s"%(tagid, listid, session['selected_list'], selected_list))
 
     return render_template('list.html', 
                            listItems = items,
