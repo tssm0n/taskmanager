@@ -26,7 +26,7 @@ def reorganize(new_list):
 def find_tag(user_id, task_list, tag):
     # TODO: Filter based on the user's ID or list...
     tag_obj = Tag.query.filter_by(name=tag).first()
-    print "tag: %s"%(tag_obj)
+    app.logger.debug("tag: %s - list: %s"%(tag_obj, task_list))
     if tag_obj is not None:
 	return tag_obj
     tag_obj = Tag()
@@ -45,7 +45,7 @@ def find_tasks(tag_id, list_id):
         query = query.filter(Task.tags.contains(tag))
     if list_id is not None:
         query = query.filter(Task.list==int(list_id))
-    return query.all()
+    return query.order_by(desc(Task.priority)).all()
     
 class TaskReorganizer:
     def __init__(self, new_list, original = None):

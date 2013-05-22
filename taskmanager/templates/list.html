@@ -41,9 +41,13 @@
     .icon-border {
         display: inline-block 
     }
+    h3 {
+	margin: 0;
+    }
 </style>
 <script>
 	var itemOrder = jQuery.parseJSON('{{ itemOrder|safe }}');
+        var urlRoot = '{{ urlRoot }}';
 	
 	$.ajaxSetup ({
     	cache: false
@@ -84,7 +88,7 @@
 	
 	function saveNew(){
 		var title = "" + $("#newTitle").val();
-		$.post("newTask", {title: title, listId: {{ session['selected_list'] }} }, function(data){
+		$.post(urlRoot + "newTask", {title: title, listId: {{ session['selected_list'] }} }, function(data){
 			$(".sortable").prepend(data);
 			$("[id$=AddTag]").hide();
 			$("#newTitle").val("");
@@ -93,12 +97,12 @@
 		// TODO: Handle error
 	}
 	function completeTask(taskId){
-		$.post("completeTask", {taskId: taskId}, function(data){
+		$.post(urlRoot + "completeTask", {taskId: taskId}, function(data){
 			// TODO: Callback, remove the item after some period
 		});
 	}
 	function changePriority(taskId, selectBox){
-		$.post("changePriority", {taskId: taskId, priorityIndex: selectBox.selectedIndex+1}, function(data){
+		$.post(urlRoot + "changePriority", {taskId: taskId, priorityIndex: selectBox.selectedIndex+1}, function(data){
 			var key = "item" + taskId;
 			var dataValue = Number(data);
 			itemOrder[key] = dataValue;
@@ -134,15 +138,16 @@
 		return prev;
 	}
 	function changeList(){
-		// TODO: Change List
+		var listid = $("#selectList").val();
+		window.location = urlRoot + "list/" + listid;
 	}
 	
 	function changeTag(tagId){
-		window.location = "/listtag/" + tagId;
+		window.location = urlRoot + "listtag/" + tagId;
 	}
 
 	function changeTask(taskId, fields){
-		$.ajax({url: "/api/task/" + taskId,
+		$.ajax({url: urlRoot + "api/task/" + taskId,
 			type: "PUT",
 			data: JSON.stringify(fields),
 			headers: {"Content-Type": "application/json"},
@@ -155,11 +160,12 @@
 		if(tags.trim() == ""){
 			return;
 		}
-		$.post("/addTag", {"taskId" : taskId, "tag": tags}, function(data) {
+		$.post(urlRoot + "addTag", {"taskId" : taskId, "tag": tags}, function(data) {
 			$("#item" + taskId + "AddTag").hide();
 			$("#item" + taskId + "AddTag").val("");
 			// TODO: Update autocomplete
 			updateTaskView(taskId);
+			$("#tagdiv").html(data);
 		}).fail(function() { alert("Error adding tag") });
 	}
 
@@ -179,7 +185,7 @@
 		changeTask(taskId, {"title": title});
 	}
 	function loadTask(taskId, callback){
-                $.get("/api/task/" + taskId, callback);
+                $.get(urlRoot + "api/task/" + taskId, callback);
 		// TODO: Handle failure
 	}
 	function updateTaskView(taskId){
@@ -212,18 +218,14 @@
 </select>
 <div><a href="#" onclick="newList()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New List</a></div>
 <div id="newListPos">
-	<form method="post" action="addList">
+	<form method="post" action="{{ urlRoot }}addList">
              Name: <input type="text" name="newListName" id="newListName" autocomplete="off">&nbsp;
              <input type="submit" value="Save"></input>
         </form>
 </div>
 </div>
 <div id="tagdiv" class="ui-widget-content">
-	<ul id="tags">
-	{% for tag in tags %}
-		<li id="tag{{ tag.id }}"><a href="#" onclick="changeTag({{ tag.id }})">{{ tag.name }}</a></li>
-	{% endfor %}
-	</ul>
+	{% include 'taglist.html' %}
 </div>
 <div><a href="#" onclick="newTask()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New Task</a></div>
 <div id="newTaskPos">

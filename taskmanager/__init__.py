@@ -6,10 +6,15 @@ from auth import *
 import utils
 from sqlalchemy import distinct
 import json
+import logging
 
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.secret_key = 'asd123jf23\/\/\/1231aa'
+app.logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+app.logger.handlers[0].setFormatter(formatter)
+#TODO: Set up a handler to log to a file
 
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Task, methods=['GET','PUT','PATCH'], 
@@ -22,6 +27,7 @@ manager.create_api(Tag, methods=['GET'],
 
 @app.route('/')
 def root():
+    app.logger.debug("Hello World!")
     return "Hello World!"
 
 @app.route('/list')
@@ -32,6 +38,9 @@ def view_list(tagid=None, listid=None):
     check_auth()
     if not session.has_key('selected_list'):
         session['selected_list'] = session['user'].default_list
+
+    if listid is not None:
+        session['selected_list'] = listid
 
     user = User.query.get(session['user'].id)
     selected_list = session['selected_list']
@@ -47,8 +56,9 @@ def view_list(tagid=None, listid=None):
                            listItems = items,
                            itemOrder = json.dumps(utils.item_order(items)),
 			               lists = lists,
-                           selectedList = session['selected_list'],
-			   tags = current_list.tags)
+                           selectedList = int(session['selected_list']),
+			   tags = current_list.tags,
+                           urlRoot = url_for("root"))
 
 @app.route('/sort', methods=['POST'])
 def perform_sort():
@@ -97,11 +107,12 @@ def add_tag():
     tags = tag_text.split(",")
     user = session['user']
     for tag in tags:
-	print "%s %s"%(tag, task_list)
+	app.logger.debug("Adding tag: %s %s"%(tag, task_list))
     	tag_obj = utils.find_tag(user.id, task_list, tag)
         task.tags.append(tag_obj)
     db.session.commit()
-    return tag_text	        
+    selected_list = List.query.get(task_list)    
+    return render_template('taglist.html', tags=selected_list.tags)
 
 @app.route('/addList', methods=['POST'])
 def add_list():
