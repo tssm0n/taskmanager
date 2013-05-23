@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../..")
 from taskmanager.models import *
 from taskmanager.utils import *
 import unittest

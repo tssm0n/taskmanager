@@ -1,16 +1,9 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.expression import desc
+import config
 
-#uri = 'sqlite:////tmp/test.db'
-uri = 'mysql+mysqldb://taskman:taskman@localhost/taskmanager'
-# mysql+mysqldb://<user>:<password>@<host>[:<port>]/<dbname>
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = uri
-#app.config['SQLALCHEMY_ECHO'] = True
-app.config['SQLALCHEMY_POOL_RECYCLE'] = 3600
-db = SQLAlchemy(app)
+db = config.db
 
 task_tags = db.Table('task_tags', db.Model.metadata,
     db.Column('task_id', db.Integer, db.ForeignKey('task.id')),

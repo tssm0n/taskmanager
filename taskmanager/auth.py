@@ -1,6 +1,7 @@
 from models import *
 from flask import session
 from flask.ext.restless import ProcessingException
+from config import app
 
 def check_auth():
     #TODO: This is a login workaround

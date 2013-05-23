@@ -1,4 +1,5 @@
 from models import *
+from config import app
 from sqlalchemy.sql.expression import desc
 
 def load_all_tasks():
