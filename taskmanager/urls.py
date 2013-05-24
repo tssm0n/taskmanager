@@ -66,7 +66,11 @@ def perform_sort():
 @app.route('/newTask', methods=['POST'])
 def new_task():
     title = request.form['title']
-    max_priority = Task.query.order_by(Task.priority).all()[-1].priority
+    # TODO: Filter this query based on the selected list
+    all_tasks = Task.query.order_by(Task.priority).all()
+    max_priority = 5000
+    if len(all_tasks) > 0:
+        max_priority = all_tasks[-1].priority
     task = Task()
     task.priority = max_priority + 1000
     task.title = title
