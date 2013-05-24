@@ -26,7 +26,7 @@ def reorganize(new_list):
 
 def find_tag(user_id, task_list, tag):
     # TODO: Filter based on the user's ID or list...
-    tag_obj = Tag.query.filter_by(name=tag).first()
+    tag_obj = Tag.query.filter(Tag.name.ilike(tag)).first()
     app.logger.debug("tag: %s - list: %s"%(tag_obj, task_list))
     if tag_obj is not None:
 	return tag_obj

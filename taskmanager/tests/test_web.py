@@ -109,6 +109,7 @@ class TaskManagerTestCase(unittest.TestCase):
 	list = self.setup_list()
 	models.db.session.commit()
 	list = models.List.query.first()
+	task.tags = []
 	task.list = list.id
 	models.db.session.commit()
 	task = models.Task.query.first()
@@ -118,6 +119,43 @@ class TaskManagerTestCase(unittest.TestCase):
 	after = len(models.Tag.query.all())
 	assert "200" in result.status   
 	self.assertEquals(1, after-before)
+	task = models.Task.query.first()
+	self.assertEquals(1, len(task.tags))
+
+    def execute_existing_tag(self, change_case):
+        self.setup_tag()
+	self.setup_user()
+        task = self.setup_tasks(1)
+        list = self.setup_list()
+        models.db.session.commit()
+	task = models.Task.query.first()
+        list = models.List.query.first()
+        task.list = list.id
+        models.db.session.commit()
+	existing = models.Tag.query.first()
+        task = models.Task.query.first()
+        before = len(models.Tag.query.all())
+	user = models.User.query.first()
+	name = existing.name
+	if change_case:
+	    name = name.upper()
+
+        with self.app as c:
+            with c.session_transaction() as sess:
+                sess['user'] = user
+            result = self.app.post("addTag", data=dict(
+                taskId=str(task.id),tag=name))
+        after = len(models.Tag.query.all())
+        assert "200" in result.status
+        self.assertEquals(0, after-before)
+        task = models.Task.query.first()
+        self.assertEquals(1, len(task.tags))
+
+    def test_add_existing_tag(self):
+	self.execute_existing_tag(False)
+
+    def test_add_existing_tag_with_case(self):
+        self.execute_existing_tag(True)
 
     def test_add_list(self):
 	self.setup_list()
