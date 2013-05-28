@@ -128,6 +128,13 @@ def add_list():
     db.session.commit()
     return redirect(url_for('view_list', listid = new_list.id))
 
+@app.route('/tags/<listid>', methods=['GET'])
+def get_tags(listid):
+    # TODO: Check permissions to list
+    tags = Tag.query.filter_by(list=listid).all()
+    tag_names = [t.name for t in tags]
+    return json.dumps(tag_names)
+
 def load_option_values():
     return OptionValues()
     

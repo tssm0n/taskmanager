@@ -157,6 +157,20 @@ class TaskManagerTestCase(unittest.TestCase):
     def test_add_existing_tag_with_case(self):
         self.execute_existing_tag(True)
 
+    def test_tag_list(self):
+	self.setup_list()
+	self.setup_tag()
+	models.db.session.commit()
+	list = models.List.query.first()
+	tag = models.Tag.query.first()
+	tag.list = list.id
+	models.db.session.commit()
+        result = self.app.get("tags/" + str(list.id))
+        assert "200" in result.status
+	expected = json.dumps(["Tag1"])
+	self.assertEquals(expected, result.data)
+	
+
     def test_add_list(self):
 	self.setup_list()
 	user = self.setup_user()

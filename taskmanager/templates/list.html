@@ -72,11 +72,37 @@
 				});
 			}
 		});
-		// TODO: Load tag values
-		var tagValues = ["asd", "asdf"];
-		$('input[id$="AddTag"]').autocomplete({source: tagValues});
+		updateTagAutocomplete();		
 		$("[id$=AddTag]").hide();
 	});
+
+	var autocompleting = false;
+	var addTagRegex = /item(\d+)AddTag/;
+
+	function updateTagAutocomplete(){
+		$.get("{{ urlRoot }}tags/{{ session['selected_list'] }}", function(data){
+			var tagValues = jQuery.parseJSON(data);
+			$('input[id$="AddTag"]').autocomplete({source: tagValues});
+			$('input[id$="AddTag"]').on("autocompleteclose", function(event, ui){ 
+				autocompleting = false;
+			});
+                        $('input[id$="AddTag"]').on("autocompleteopen", function(event, ui){
+                                autocompleting = true;
+                        });
+                        $('input[id$="AddTag"]').on("autocompleteselect", function(event, ui){
+                                autocompleting = false;
+				item = findItemNumber(event.currentTarget.name);
+				$("#item" + item + "AddTag").val(ui.item.value);
+				addTag(findItemNumber(event.currentTarget.name));
+                        });
+
+		});
+
+	}
+
+	function findItemNumber(field){
+		return addTagRegex.exec(field)[1];
+	}
 
 	function newTask(){
 		$("#newTaskPos").toggle();
@@ -161,6 +187,9 @@
 	}
 	
 	function addTag(taskId){
+		if(autocompleting){
+			return false;
+		}
 		var tags = $("#item" + taskId + "AddTag").val();
 		if(tags.trim() == ""){
 			return;
@@ -168,7 +197,7 @@
 		$.post(urlRoot + "addTag", {"taskId" : taskId, "tag": tags}, function(data) {
 			$("#item" + taskId + "AddTag").hide();
 			$("#item" + taskId + "AddTag").val("");
-			// TODO: Update autocomplete
+			updateTagAutocomplete();
 			updateTaskView(taskId);
 			$("#tagdiv").html(data);
 		}).fail(function() { alert("Error adding tag") });
