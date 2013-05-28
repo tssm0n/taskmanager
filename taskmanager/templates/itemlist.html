@@ -18,6 +18,6 @@
                                 {{ tag.name }} &nbsp;
                         {% endfor %}
                 </span>
-                <input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:inline-block"/>
+                <input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:none"/>
                 <span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
 </li>

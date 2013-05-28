@@ -32,13 +32,17 @@ def view_list(tagid=None, listid=None):
     if not session.has_key('selected_list'):
         session['selected_list'] = session['user'].default_list
 
+    user = User.query.get(session['user'].id)
+    tag = None
+
     if tagid is not None:
         tag = Tag.query.get(int(tagid))
         session['selected_list'] = tag.list
     if listid is not None:
         session['selected_list'] = listid
+	user.default_list = listid
+	db.session.commit()
 
-    user = User.query.get(session['user'].id)
     selected_list = session['selected_list']
     app.logger.debug("Tag: %s, List: %s, Saved List: %s, Passed List: %s"%(tagid, listid, session['selected_list'], selected_list))
     current_list = List.query.get(selected_list)
@@ -55,6 +59,7 @@ def view_list(tagid=None, listid=None):
 			               lists = lists,
                            selectedList = int(session['selected_list']),
 			   tags = current_list.tags,
+			   tag = tag,
                            urlRoot = url_for("root"))
 
 @app.route('/sort', methods=['POST'])
@@ -131,7 +136,7 @@ def add_list():
 @app.route('/tags/<listid>', methods=['GET'])
 def get_tags(listid):
     # TODO: Check permissions to list
-    tags = Tag.query.filter_by(list=listid).all()
+    tags = Tag.query.filter_by(list=listid).order_by(Tag.name).all()
     tag_names = [t.name for t in tags]
     return json.dumps(tag_names)
 

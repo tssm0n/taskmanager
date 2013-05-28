@@ -73,7 +73,10 @@
 			}
 		});
 		updateTagAutocomplete();		
-		$("[id$=AddTag]").hide();
+		//$("[id$=AddTag]").hide();
+		$("#removeTag").click(function(){ 
+			changeList();
+		 });
 	});
 
 	var autocompleting = false;
@@ -261,6 +264,11 @@
 <div id="tagdiv" class="ui-widget-content">
 	{% include 'taglist.html' %}
 </div>
+{% if tag != None %}
+    <div>
+	<h2>Tag: {{ tag.name }}<span class="icon-border"><span id="removeTag" class="ui-icon ui-icon-circle-close"></span></span> </h2>
+    </div>
+{% endif %}
 <div><a href="#" onclick="newTask()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New Task</a></div>
 <div id="newTaskPos">
 	Title: <input type="text" name="newTitle" id="newTitle" autocomplete="off">&nbsp;

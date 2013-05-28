@@ -1,6 +1,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.expression import desc
+from sqlalchemy.orm import column_property, object_session
+from sqlalchemy import *
 import config
 
 db = config.db
@@ -40,6 +42,14 @@ class Tag(db.Model):
     list = db.Column(db.Integer, db.ForeignKey('list.id'))
     parent = db.Column(db.Integer, db.ForeignKey('tag.id'))
 
+    @property
+    def task_count(self):
+	return object_session(self).\
+	    scalar(
+		select([func.count(Task.id)]).\
+		    where(Task.complete==False).\
+		    where(Task.tags.contains(self)))
+
 user_list = db.Table('user_list', db.Model.metadata,
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('list_id', db.Integer, db.ForeignKey('list.id'))
@@ -58,7 +68,7 @@ class List(db.Model):
     tasks = db.relationship("Task",
 	primaryjoin="and_(Task.list==List.id, Task.complete==False)",
 	order_by=desc(Task.priority))
-    tags = db.relationship("Tag")
+    tags = db.relationship("Tag", order_by="Tag.name")
 
 class Options(db.Model):
     id = db.Column(db.Integer, primary_key=True)
