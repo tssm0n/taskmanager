@@ -76,7 +76,6 @@
 			}
 		});
 		updateTagAutocomplete();		
-		//$("[id$=AddTag]").hide();
 		$("#removeTag").click(function(){ 
 			changeList();
 		 });
@@ -214,7 +213,7 @@
 			return;
 		}
 		$.post(urlRoot + "addTag", {"taskId" : taskId, "tag": tags}, function(data) {
-			$("#item" + taskId + "AddTag").hide();
+			$("#item" + taskId + "AddTagSpan").hide();
 			$("#item" + taskId + "AddTag").val("");
 			updateTagAutocomplete();
 			updateTaskView(taskId);
@@ -223,7 +222,7 @@
 	}
 
 	function tagBox(tagId){
-		$("#item" + tagId + "AddTag").toggle();
+		$("#item" + tagId + "AddTagSpan").toggle();
 		$("#item" + tagId + "AddTag").focus();
 	}
 	function editTitle(taskId){
