@@ -2,12 +2,17 @@ from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 import flask.ext.restless
 from sqlalchemy import distinct
+from flask.ext.openid import OpenID
 import json
 import logging
+import tempfile
 from models import *
 from config import *
 from auth import *
 import utils
+
+oid_file = tempfile.mkdtemp()
+oid = OpenID(app, oid_file)
 
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Task, methods=['GET','PUT','PATCH','DELETE'],
@@ -18,10 +23,69 @@ manager.create_api(Tag, methods=['GET'],
         GET_MANY=[api_auth]))
 #TODO: Implement pre and post processors on the rest API to filter available tasks
 
+@app.before_request
+def lookup_current_user():
+    g.user = None
+    if 'openid' in session:
+        openid = session['openid']
+        g.user = User.query.filter_by(openid=openid).first()
+
 @app.route('/')
 def root():
     app.logger.debug("Hello World!")
     return "Hello World!"
+
+@app.route('/login', methods=['GET', 'POST'])
+@oid.loginhandler
+def login():
+    if g.user is not None:
+        return redirect(oid.get_next_url())
+    if request.method == 'POST':
+        openid = request.form.get('openid')
+        if openid:
+		# TODO: Allow providers other than google
+            return oid.try_login(flask.ext.openid.COMMON_PROVIDERS['google'], ask_for=['email','fullname','nickname'])
+    return render_template('login.html', next=oid.get_next_url(),
+                           error=oid.fetch_error())
+
+@app.route('/create-profile', methods=['GET', 'POST'])
+def create_profile():
+    if g.user is not None or 'openid' not in session:
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        if not name:
+            flash(u'Error: you have to provide a name')
+        elif '@' not in email:
+            flash(u'Error: you have to enter a valid email address')
+        else:
+            flash(u'Profile successfully created')
+	    default_list = List(name="Inbox")
+	    db.session.add(default_list)
+	    db.session.commit()
+            db.session.add(User(name=email[:50], openid=session['openid'], created=datetime.now(), default_list=default_list.id))
+            db.session.commit()
+            return redirect(oid.get_next_url())
+    return render_template('create_profile.html', next_url=oid.get_next_url())
+
+@oid.after_login
+def create_or_login(resp):
+    session['openid'] = resp.identity_url
+    user = User.query.filter_by(openid=resp.identity_url).first()
+    if user is not None:
+        flash(u'Successfully signed in')
+        g.user = user
+        return redirect(oid.get_next_url())
+    return redirect(url_for('create_profile', next=oid.get_next_url(),
+                            name=resp.fullname or resp.nickname,
+                            email=resp.email))
+
+@app.route('/logout')
+def logout():
+    session.pop('openid', None)
+    flash(u'You were signed out')
+    return redirect(oid.get_next_url())
 
 @app.route('/list')
 @app.route('/listtag/<tagid>')

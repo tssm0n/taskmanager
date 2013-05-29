@@ -61,8 +61,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     lists = db.relationship("List", secondary=user_list, backref="users")
+    openid = db.Column(db.String(255))
     default_list = db.Column(db.Integer)
-
+    created = db.Column(db.DateTime)
 
 class List(db.Model):
     id = db.Column(db.Integer, primary_key=True)
