@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.expression import desc
 from sqlalchemy.orm import column_property, object_session
 from sqlalchemy import *
+from sqlalchemy import event
+from datetime import datetime
 import config
 
 db = config.db
@@ -76,3 +78,9 @@ class Options(db.Model):
     value = db.Column(db.String(20))
     label = db.Column(db.String(50))
     
+
+def update_task_timestamp(mapper, connection, target):
+    target.last_update = datetime.now()
+
+event.listen(Task, 'before_insert', update_task_timestamp)
+event.listen(Task, 'before_update', update_task_timestamp)
