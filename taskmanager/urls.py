@@ -23,12 +23,16 @@ manager.create_api(Tag, methods=['GET'],
         GET_MANY=[api_auth]))
 #TODO: Implement pre and post processors on the rest API to filter available tasks
 
+unmanaged_urls = ["login", "create_profile", "create_or_login", "logout"]
+
 @app.before_request
 def lookup_current_user():
-    g.user = None
-    if 'openid' in session:
-        openid = session['openid']
-        g.user = User.query.filter_by(openid=openid).first()
+    if not request.endpoint in unmanaged_urls:
+        if not 'openid' in session:
+   	    return redirect(url_for('login'))
+        if not 'user' in session:
+            openid = session['openid']
+            session['user'] = User.query.filter_by(openid=openid).first()
 
 @app.route('/')
 def root():
@@ -38,7 +42,7 @@ def root():
 @app.route('/login', methods=['GET', 'POST'])
 @oid.loginhandler
 def login():
-    if g.user is not None:
+    if 'user' in session:
         return redirect(oid.get_next_url())
     if request.method == 'POST':
         openid = request.form.get('openid')
@@ -50,8 +54,8 @@ def login():
 
 @app.route('/create-profile', methods=['GET', 'POST'])
 def create_profile():
-    if g.user is not None or 'openid' not in session:
-        return redirect(url_for('index'))
+    if 'user' not in session or 'openid' not in session:
+        return redirect(url_for('view_list'))
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
@@ -75,7 +79,7 @@ def create_or_login(resp):
     user = User.query.filter_by(openid=resp.identity_url).first()
     if user is not None:
         flash(u'Successfully signed in')
-        g.user = user
+        session['user'] = user
         return redirect(oid.get_next_url())
     return redirect(url_for('create_profile', next=oid.get_next_url(),
                             name=resp.fullname or resp.nickname,
@@ -84,6 +88,7 @@ def create_or_login(resp):
 @app.route('/logout')
 def logout():
     session.pop('openid', None)
+    session.pop('user', None)
     flash(u'You were signed out')
     return redirect(oid.get_next_url())
 

@@ -25,10 +25,18 @@ class TaskManagerTestCase(unittest.TestCase):
 	os.close(cls.db_fd)
 	os.unlink(cls.db_file)
 
+    def setUp(self):
+	#self.tearDown()
+        with self.app as c:
+            with c.session_transaction() as sess:
+                sess['user'] = models.User()
+                sess['openid'] = "1"
+
     def tearDown(self):
 	models.Task.query.delete()
 	models.List.query.delete()
 	models.Tag.query.delete()
+	models.db.session.commit()
 
     def test_datamodel(self):
 	self.assertEquals(0,len(models.Task.query.all()))
@@ -66,6 +74,7 @@ class TaskManagerTestCase(unittest.TestCase):
 	return user
 
     def test_root(self):
+	user = models.User.query.first()
 	result = self.app.get("/")
 	self.assertEquals("Hello World!", result.data)
 
