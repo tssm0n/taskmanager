@@ -14,7 +14,7 @@
 
     .sortable {
     	float:left;
-    	width:600px;
+    	width:85%;
 	padding:3px;
     }
     #tagdiv {
@@ -43,6 +43,9 @@
     }
     h3 {
 	margin: 0;
+    }
+    .taskListContainer {
+	overflow: auto;
     }
 </style>
 <script>
@@ -109,10 +112,12 @@
 
 	function newTask(){
 		$("#newTaskPos").toggle();
+		$("#newTitle").focus();
 	}
 
 	function newList(){
 		$("#newListPos").toggle();
+		$("#newListName").focus();
 	}
 	
 	function saveNew(){
@@ -127,7 +132,7 @@
 	}
 	function completeTask(taskId){
 		$.post(urlRoot + "completeTask", {taskId: taskId}, function(data){
-			setTimeout(function() { hideCompleted(taskId) }, 6000)
+			setTimeout(function() { hideCompleted(taskId) }, 4000)
 		});
 	}
         function hideCompleted(taskId){
@@ -188,6 +193,17 @@
 			dataType: "json"});
 		// TODO: Handle error
 	}
+
+	function deleteItem(taskId){
+		if(confirm("Are You Sure You Would Like To Delete This Task?")){
+			$.ajax({url: urlRoot + "api/task/" + taskId,
+			type: "DELETE",
+			success: function(){
+				$("#item" + taskId).hide();
+			}});
+		} 
+		// TODO: Handle error
+	}
 	
 	function addTag(taskId){
 		if(autocompleting){
@@ -208,6 +224,7 @@
 
 	function tagBox(tagId){
 		$("#item" + tagId + "AddTag").toggle();
+		$("#item" + tagId + "AddTag").focus();
 	}
 	function editTitle(taskId){
 		loadTask(taskId, function(task){
@@ -274,13 +291,13 @@
 	Title: <input type="text" name="newTitle" id="newTitle" autocomplete="off">&nbsp;
 	<input type="button" onclick="saveNew()" value="Save"></button>
 </div>
-
+<div class="taskListContainer">
 <ul id="listitems1" class="sortable">
 	{% for item in listItems %}
 		{% include 'itemlist.html' %}
 	{% endfor %}
 </ul>
-
+</div>
 </div>	
 	
 </body>	

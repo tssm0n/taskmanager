@@ -20,4 +20,5 @@
                 </span>
                 <input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})" style="display:none"/>
                 <span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
+		<span class="ui-icon ui-icon-closethick" style="display:inline-block" onclick="deleteItem('{{ item.id }}');"></span>
 </li>

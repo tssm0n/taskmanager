@@ -10,7 +10,7 @@ from auth import *
 import utils
 
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Task, methods=['GET','PUT','PATCH'],
+manager.create_api(Task, methods=['GET','PUT','PATCH','DELETE'],
         preprocessors=dict(GET_SINGLE=[api_auth],
         GET_MANY=[api_auth]))
 manager.create_api(Tag, methods=['GET'],
