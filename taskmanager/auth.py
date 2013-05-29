@@ -4,11 +4,8 @@ from flask.ext.restless import ProcessingException
 from config import app
 
 def check_auth():
-    #TODO: This is a login workaround
-    app.logger.debug("Single user mode...")
-    #if not session.has_key('user'):
-    session['user'] = User.query.get(1)
-    return True
+    app.logger.debug("check_auth")
+    return session.has_key('user')
 
 def api_auth(search_params=None, **kw):
     if not check_auth():

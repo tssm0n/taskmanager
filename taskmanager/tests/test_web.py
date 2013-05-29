@@ -75,8 +75,8 @@ class TaskManagerTestCase(unittest.TestCase):
 
     def test_root(self):
 	user = models.User.query.first()
-	result = self.app.get("/")
-	self.assertEquals("Hello World!", result.data)
+	result = self.app.get("/", follow_redirects=False)
+	assert "302" in result.status
 
     def test_sort(self):
 	self.setup_tasks(10)

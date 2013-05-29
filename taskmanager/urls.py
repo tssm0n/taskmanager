@@ -37,7 +37,7 @@ def lookup_current_user():
 @app.route('/')
 def root():
     app.logger.debug("Hello World!")
-    return "Hello World!"
+    return redirect(url_for('view_list'))
 
 @app.route('/login', methods=['GET', 'POST'])
 @oid.loginhandler
@@ -54,7 +54,8 @@ def login():
 
 @app.route('/create-profile', methods=['GET', 'POST'])
 def create_profile():
-    if 'user' not in session or 'openid' not in session:
+    app.logger.debug("Create_profile")
+    if 'openid' not in session:
         return redirect(url_for('view_list'))
     if request.method == 'POST':
         name = request.form['name']
@@ -68,13 +69,17 @@ def create_profile():
 	    default_list = List(name="Inbox")
 	    db.session.add(default_list)
 	    db.session.commit()
-            db.session.add(User(name=email[:50], openid=session['openid'], created=datetime.now(), default_list=default_list.id))
+	    user = User(name=email[:50], openid=session['openid'], created=datetime.now(), \
+                default_list=default_list.id, lists=[default_list])
+            db.session.add(user)
             db.session.commit()
+	    session['user'] = user
             return redirect(oid.get_next_url())
     return render_template('create_profile.html', next_url=oid.get_next_url())
 
 @oid.after_login
 def create_or_login(resp):
+    app.logger.debug("create_or_login")
     session['openid'] = resp.identity_url
     user = User.query.filter_by(openid=resp.identity_url).first()
     if user is not None:
@@ -96,12 +101,12 @@ def logout():
 @app.route('/listtag/<tagid>')
 @app.route('/list/<listid>')
 def view_list(tagid=None, listid=None):
-    #TODO: This is a login workaround
-    check_auth()
+    user = db.session.merge(session['user'])
+    session['user'] = user
+
     if not session.has_key('selected_list'):
         session['selected_list'] = session['user'].default_list
 
-    user = User.query.get(session['user'].id)
     tag = None
 
     if tagid is not None:
@@ -174,7 +179,6 @@ def change_priority():
     
 @app.route('/addTag', methods=['POST'])
 def add_tag():
-    check_auth()
     task_id = request.form['taskId']
     task = Task.query.get(int(task_id))
     task_list = task.list
@@ -192,7 +196,6 @@ def add_tag():
 @app.route('/addList', methods=['POST'])
 def add_list():
     # TODO: Check list already exists
-    check_auth()
     list_name = request.form['newListName']
     new_list = List()
     new_list.name = list_name
