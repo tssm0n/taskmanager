@@ -31,8 +31,8 @@ def lookup_current_user():
         if not 'openid' in session:
    	    return redirect(url_for('login'))
         if not 'user' in session:
-            openid = session['openid']
-            session['user'] = User.query.filter_by(openid=openid).first()
+            email = session['email']
+            session['user'] = User.query.filter_by(name=email).first()
 
 @app.route('/')
 def root():
@@ -42,6 +42,9 @@ def root():
 @app.route('/login', methods=['GET', 'POST'])
 @oid.loginhandler
 def login():
+    if 'user' in session and not 'openid' in session:
+	app.logger.debug("Clearing stale user session")
+	session.pop('user')
     if 'user' in session:
         return redirect(oid.get_next_url())
     if request.method == 'POST':
@@ -80,8 +83,10 @@ def create_profile():
 @oid.after_login
 def create_or_login(resp):
     app.logger.debug("create_or_login")
+    app.logger.debug(resp.email)
     session['openid'] = resp.identity_url
-    user = User.query.filter_by(openid=resp.identity_url).first()
+    session['email']= resp.email
+    user = User.query.filter_by(name=resp.email).first()
     if user is not None:
         flash(u'Successfully signed in')
         session['user'] = user

@@ -20,5 +20,6 @@
                 </span>
                 <span id="item{{ item.id }}AddTagSpan" style="display:none"><input type="text" id="item{{ item.id }}AddTag" name="item{{ item.id }}AddTag" onchange="addTag({{ item.id }})"/><input type="button" onclick="addTag({{ item.id }})" value="Save"></input></span>
                 <span class="ui-icon ui-icon-tag" style="display:inline-block" onclick="tagBox('{{ item.id }}');"></span>
+		<span class="ui-icon ui-icon-document" style="display:inline-block" onclick="noteBox('{{ item.id }}');"></span>
 		<span class="ui-icon ui-icon-closethick" style="display:inline-block" onclick="deleteItem('{{ item.id }}');"></span>
 </li>

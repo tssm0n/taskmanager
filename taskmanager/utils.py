@@ -83,14 +83,14 @@ class TaskReorganizer:
                     task.priority = tasks[index+1].priority + 250
                     self.dirty.append(task)
             else:
-                if task.priority > prev.priority:
+                if task.priority >= prev.priority:
                     if index == len(tasks) - 1:
                         task.priority = prev.priority - 250
                         self.dirty.append(task)
                         if task.priority < 0:
 				task.priority = 1
                     else:
-                        if tasks[index+1].priority < prev.priority:
+                        if tasks[index+1].priority <= prev.priority:
                             task.priority = (prev.priority + tasks[index+1].priority)/2
                             self.dirty.append(task)
                         else: 

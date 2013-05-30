@@ -47,6 +47,13 @@
     .taskListContainer {
 	overflow: auto;
     }
+    .logout {
+	float: right;
+        padding-right: 30px;
+    }
+    .notesBox {
+	width: 100%;
+    }
 </style>
 <script>
 	var itemOrder = jQuery.parseJSON('{{ itemOrder|safe }}');
@@ -123,9 +130,10 @@
 		var title = "" + $("#newTitle").val();
 		$.post(urlRoot + "newTask", {title: title, listId: {{ session['selected_list'] }} }, function(data){
 			$(".sortable").prepend(data);
-			$("[id$=AddTag]").hide();
+			$("[id$=AddTagSpan]").hide();
 			$("#newTitle").val("");
 			$("#newTaskPos").hide();
+			updateTagAutocomplete();
 		});		
 		// TODO: Handle error
 	}
@@ -251,6 +259,28 @@
 			$("#item" + task.id + "Tags").html(tagText);
 		});
 	}
+	function noteBox(taskId){
+		var pos = $("#item" + taskId);
+		var name = 'notesBox'+taskId;
+		if($("#" + name + "li").length > 0){
+			cancelNote(taskId);
+			return;
+		}
+		loadTask(taskId, function(task) {
+			var textbox = "<li id='"+name+"li'><textarea class='notesBox' id='"+name+"' name='"+name+"'></textarea>" +
+				"<button onclick='saveNote("+taskId+")'>Save</button> <button onclick='cancelNote("+taskId+")'>Cancel</button>";
+			pos.append(textbox);
+			$("#" + name).val(task.details);
+		});
+	}
+	function cancelNote(taskId){
+		$("#notesBox" + taskId + "li").remove();
+	}
+	function saveNote(taskId){
+		var details = $("#notesBox"+taskId).val();
+		changeTask(taskId, {"details": details});
+		cancelNote(taskId);	
+	}
 </script>
 
 </head>
@@ -258,7 +288,7 @@
 <body>
 
 <div class="list">
-<div id="userName">Welcome {{ session['user'].name }}.</div>
+<div id="userName">Welcome {{ session['user'].name }}. <span class="logout"><a href="{{ urlRoot }}logout">Logout</a><span></div>
 <div id="lists"><select id="selectList" name="selectList" onchange="changeList()"
 	class="ui-button ui-widget ui-state-default ui-corner-all">
 		{% for list in lists %}

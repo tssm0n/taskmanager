@@ -42,6 +42,12 @@ class TaskReorganizerTestCase(unittest.TestCase):
         for next_task in result:
             self.assertTrue(next_task.priority < priority, "Expected lower priority %s < %s - id: %s" % (next_task.priority, priority, next_task.id))
             priority = next_task.priority
+
+    def test_same_priority(self):
+	tasks = [Task(id=1, priority=85000), Task(id=2, priority=85000)]
+	to = TaskReorganizer(["item1","item2"], tasks)
+	result = to.process()
+	assert result[0].priority != result[1].priority
     
 if __name__ == '__main__':
     unittest.main()
