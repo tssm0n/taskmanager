@@ -54,6 +54,10 @@
     .notesBox {
 	width: 100%;
     }
+    .titleBox {
+	width: 60%;
+	min-width: 150px;
+    }
 </style>
 <script>
 	var itemOrder = jQuery.parseJSON('{{ itemOrder|safe }}');
@@ -236,7 +240,7 @@
 	function editTitle(taskId){
 		loadTask(taskId, function(task){
 			var html = "<input type='text' value='" + task.title + 
-				"' onchange='updateTitle(" + taskId + ", this)'></input>";
+				"' onchange='updateTitle(" + taskId + ", this)' class='titleBox'></input>";
 			$("#item" + taskId + "Title").html(html);			
 		});
 	}
@@ -317,7 +321,7 @@
 {% endif %}
 <div><a href="#" onclick="newTask()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New Task</a></div>
 <div id="newTaskPos">
-	Title: <input type="text" name="newTitle" id="newTitle" autocomplete="off">&nbsp;
+	Title: <input type="text" name="newTitle" id="newTitle" autocomplete="off" class="titleBox">&nbsp;
 	<input type="button" onclick="saveNew()" value="Save"></button>
 </div>
 <div class="taskListContainer">

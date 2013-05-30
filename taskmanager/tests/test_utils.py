@@ -48,6 +48,17 @@ class TaskReorganizerTestCase(unittest.TestCase):
 	to = TaskReorganizer(["item1","item2"], tasks)
 	result = to.process()
 	assert result[0].priority != result[1].priority
-    
+
+class UtilsUnitTests(unittest.TestCase):
+    def test_list_id_valid_for_user(self):
+	user = User()
+	list1 = List(id=1)
+    	list2 = List(id=2)
+	user.lists = [list1,list2]
+	self.assertTrue(list_id_valid_for_user(user, 1))
+	self.assertFalse(list_id_valid_for_user(user, 3))
+		
+
+
 if __name__ == '__main__':
     unittest.main()

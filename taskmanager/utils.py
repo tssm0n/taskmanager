@@ -49,6 +49,14 @@ def find_tasks(tag_id, list_id, include_completed=True):
     if not include_completed:
         query = query.filter(Task.complete==False)
     return query.order_by(desc(Task.priority)).all()
+
+def list_id_valid_for_user(user, list_id):
+    ids = [list.id for list in user.lists]
+    return list_id in ids
+
+def tag_id_valid_for_user(user, tag_id):
+    tag = Tag.query.filter(id=tag_id).first()
+    return self.list_id_valid_for_user(user, tag.list)
     
 class TaskReorganizer:
     def __init__(self, new_list, original = None):

@@ -1,5 +1,5 @@
 from flask import Flask, request, session, g, redirect, url_for, abort, \
-    render_template, flash
+    render_template, flash, Response
 import flask.ext.restless
 from sqlalchemy import distinct
 from flask.ext.openid import OpenID
@@ -125,7 +125,6 @@ def view_list(tagid=None, listid=None):
     selected_list = session['selected_list']
     app.logger.debug("Tag: %s, List: %s, Saved List: %s, Passed List: %s"%(tagid, listid, session['selected_list'], selected_list))
     current_list = List.query.get(selected_list)
-        # TODO: When loading tasks, filter out the completed ones
     lists = user.lists
 
     items = utils.find_tasks(tagid, selected_list, False)
@@ -150,8 +149,11 @@ def perform_sort():
 @app.route('/newTask', methods=['POST'])
 def new_task():
     title = request.form['title']
-    # TODO: Filter this query based on the selected list
-    all_tasks = Task.query.order_by(Task.priority).all()
+    list_id = int(request.form['listId'])
+    user = db.session.merge(session['user'])
+    if not utils.list_id_valid_for_user(user, list_id):
+	return Response("Access Denied", 401)	
+    all_tasks = Task.query.filter_by(list=list_id).order_by(Task.priority).all()
     max_priority = 5000
     if len(all_tasks) > 0:
         max_priority = all_tasks[-1].priority
@@ -159,8 +161,7 @@ def new_task():
     task.priority = max_priority + 1000
     task.title = title
     task.complete = False
-    task.list = int(request.form['listId'])
-    # TODO: Before saving, check that the user has permission to save to that list
+    task.list = list_id
     db.session.add(task)
     db.session.commit()
     return render_template('itemlist.html', item=task)    
@@ -186,10 +187,17 @@ def change_priority():
 def add_tag():
     task_id = request.form['taskId']
     task = Task.query.get(int(task_id))
+    user = session['user']
+    user = db.session.merge(user)
+
+    if not utils.list_id_valid_for_user(user, task.list):
+	return Response("Access Denied", 401)	
+
     task_list = task.list
     tag_text = request.form['tag']
     tags = tag_text.split(",")
     user = session['user']
+    user = db.session.merge(user)
     for tag in tags:
 	app.logger.debug("Adding tag: %s %s"%(tag, task_list))
     	tag_obj = utils.find_tag(user.id, task_list, tag)
@@ -212,7 +220,10 @@ def add_list():
 
 @app.route('/tags/<listid>', methods=['GET'])
 def get_tags(listid):
-    # TODO: Check permissions to list
+    user = db.session.merge(session['user'])
+    if not utils.list_id_valid_for_user(user, int(listid)):
+        return Response("Access Denied", 401)
+
     tags = Tag.query.filter_by(list=listid).order_by(Tag.name).all()
     tag_names = [t.name for t in tags]
     return json.dumps(tag_names)

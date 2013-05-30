@@ -26,17 +26,27 @@ class TaskManagerTestCase(unittest.TestCase):
 	os.unlink(cls.db_file)
 
     def setUp(self):
-	#self.tearDown()
+        self.list = self.setup_list()
+        self.user = self.setup_user()
+        self.tag = self.setup_tag()
+	models.db.session.commit()
+	self.user = models.db.session.merge(self.user)
+
         with self.app as c:
             with c.session_transaction() as sess:
-                sess['user'] = models.User()
+                sess['user'] = self.user
                 sess['openid'] = "1"
-
+	
     def tearDown(self):
+	models.db.session.commit()
 	models.Task.query.delete()
 	models.List.query.delete()
 	models.Tag.query.delete()
+	models.User.query.delete()
+	self.user = None
+	self.list = None
 	models.db.session.commit()
+	models.db.session.flush()
 
     def test_datamodel(self):
 	self.assertEquals(0,len(models.Task.query.all()))
@@ -51,7 +61,7 @@ class TaskManagerTestCase(unittest.TestCase):
 	return list
 
     def setup_tag(self):
-	list = self.setup_list()
+	list = self.list
 	tag = models.Tag()
 	tag.name = "Tag1"
 	tag.list = list.id
@@ -73,6 +83,24 @@ class TaskManagerTestCase(unittest.TestCase):
 	models.db.session.add(user)
 	return user
 
+    def setup_multi_user(self):
+	self.user = models.db.session.merge(self.user)
+	self.list = models.db.session.merge(self.list)
+	self.user.lists = [self.list]
+
+        list2 = models.List()
+        list2.name = "List2"
+        models.db.session.add(list2)
+
+	user2 = models.User()
+        user2.name = "User2"
+	user2.lists = [list2]
+        models.db.session.add(user2)
+	models.db.session.commit()
+	models.db.session.flush()
+
+	return user2
+
     def test_root(self):
 	user = models.User.query.first()
 	result = self.app.get("/", follow_redirects=False)
@@ -89,7 +117,6 @@ class TaskManagerTestCase(unittest.TestCase):
 
     def test_new_task(self):
 	self.setup_tasks(1)
-	self.setup_list()
 	models.db.session.commit()
 	before = len(models.Task.query.all())
 	result = self.app.post("newTask", data=dict(
@@ -113,9 +140,8 @@ class TaskManagerTestCase(unittest.TestCase):
 	assert task.complete
 
     def test_add_tag(self):
-	self.setup_tag()
 	task = self.setup_tasks(1)
-	list = self.setup_list()
+	list = self.list
 	models.db.session.commit()
 	list = models.List.query.first()
 	task.tags = []
@@ -126,16 +152,17 @@ class TaskManagerTestCase(unittest.TestCase):
 	result = self.app.post("addTag", data=dict(
 		taskId=str(task.id),tag="New"))
 	after = len(models.Tag.query.all())
-	assert "200" in result.status   
+	self.assertIn("200", result.status)   
 	self.assertEquals(1, after-before)
 	task = models.Task.query.first()
 	self.assertEquals(1, len(task.tags))
 
     def execute_existing_tag(self, change_case):
-        self.setup_tag()
-	self.setup_user()
+	self.user = models.db.session.merge(self.user)
+	self.list = models.db.session.merge(self.list)
+	self.user.lists = [self.list]
         task = self.setup_tasks(1)
-        list = self.setup_list()
+        list = self.list
         models.db.session.commit()
 	task = models.Task.query.first()
         list = models.List.query.first()
@@ -155,7 +182,7 @@ class TaskManagerTestCase(unittest.TestCase):
             result = self.app.post("addTag", data=dict(
                 taskId=str(task.id),tag=name))
         after = len(models.Tag.query.all())
-        assert "200" in result.status
+        self.assertIn("200", result.status)
         self.assertEquals(0, after-before)
         task = models.Task.query.first()
         self.assertEquals(1, len(task.tags))
@@ -167,22 +194,21 @@ class TaskManagerTestCase(unittest.TestCase):
         self.execute_existing_tag(True)
 
     def test_tag_list(self):
-	self.setup_list()
-	self.setup_tag()
 	models.db.session.commit()
 	list = models.List.query.first()
 	tag = models.Tag.query.first()
 	tag.list = list.id
+	self.user = models.db.session.merge(self.user)
+	self.user.lists = [list]
 	models.db.session.commit()
         result = self.app.get("tags/" + str(list.id))
-        assert "200" in result.status
+        self.assertIn("200", result.status)
 	expected = json.dumps(["Tag1"])
 	self.assertEquals(expected, result.data)
 	
 
     def test_add_list(self):
-	self.setup_list()
-	user = self.setup_user()
+	user = self.user
 	models.db.session.commit()
 	user = models.User.query.first()
 	before = len(models.List.query.all())
@@ -196,6 +222,42 @@ class TaskManagerTestCase(unittest.TestCase):
 	after = len(models.List.query.all())
 	assert "302" in result.status
 	self.assertEquals(1, after-before)
+
+    def test_multi_user(self):
+	self.setup_multi_user()
+	models.db.session.commit()
+
+	users = len(models.User.query.all())
+	self.assertEquals(2, users)
+
+    def test_new_task_invalid_list(self):
+	user2 = self.setup_multi_user()
+	self.user.lists = [self.list]
+        self.setup_tasks(1)
+        result = self.app.post("newTask", data=dict(
+                title="New", listId=user2.lists[0].id))
+        self.assertIn("401", result.status)
+
+    def test_add_tag_invalid_tag(self):
+	user2 = self.setup_multi_user()
+        self.user.lists = [self.list]
+        task = self.setup_tasks(1)
+        list = user2.lists[0]
+        models.db.session.commit()
+        task.tags = []
+        task.list = list.id
+        models.db.session.commit()
+        task = models.db.session.merge(task)
+        result = self.app.post("addTag", data=dict(
+                taskId=str(task.id),tag="New"))
+        self.assertIn("401", result.status)
+
+    def test_get_tags_invalid_list(self):
+        user2 = self.setup_multi_user()
+        self.user.lists = [self.list]
+        result = self.app.get("/tags/250")
+        self.assertIn("401", result.status)
+
 
 if __name__ == '__main__':
     unittest.main()
