@@ -228,6 +228,21 @@ def get_tags(listid):
     tag_names = [t.name for t in tags]
     return json.dumps(tag_names)
 
+@app.route('/removeTag', methods=['POST'])
+def remove_tag():
+    #TODO: Check permission to the list
+    task_id = request.form['taskId']
+    tag_id = int(request.form['tag'])
+    task = Task.query.get(int(task_id))
+    tags = [tag.id for tag in task.tags]
+    if not tag_id in tags:
+	return Response("Access Denied", 401)
+
+    new_tags = [tag for tag in task.tags if tag.id != tag_id]
+    task.tags = new_tags
+    db.session.commit()
+    return Response("OK", 200)
+
 def load_option_values():
     return OptionValues()
     

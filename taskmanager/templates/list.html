@@ -216,6 +216,16 @@
 		// TODO: Handle error
 	}
 	
+	function removeTag(taskId, tagId, tagName){
+		if(!confirm("Remove Tag " + tagName + "?")){
+			return false;
+		}
+		$.post(urlRoot + "removeTag", {"taskId": taskId, "tag": tagId}, function(data) {
+			updateTaskView(taskId);
+		});
+		// TODO: Error handling
+	}
+
 	function addTag(taskId){
 		if(autocompleting){
 			return false;
@@ -257,7 +267,9 @@
 		loadTask(taskId, function(task) {
 			var tagText = "";
 			tags = jQuery.map(task.tags, function(tag) {
-				tagText += tag.name + " &nbsp;";
+				tagText += '<span onclick="removeTag(' + taskId + ',' + tag.id;
+				tagText += ',\'' + tag.name + '\')">'; 
+				tagText += tag.name + "</span> &nbsp;";
 				return tag.name;
 			});
 			$("#item" + task.id + "Tags").html(tagText);

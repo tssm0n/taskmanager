@@ -65,8 +65,9 @@ class TaskManagerTestCase(unittest.TestCase):
 	tag = models.Tag()
 	tag.name = "Tag1"
 	tag.list = list.id
+	list.tags = [tag]
 	models.db.session.add(tag)
-	
+	return tag
 
     def setup_tasks(self, count):
 	for index in range(1, count+1):
@@ -157,19 +158,31 @@ class TaskManagerTestCase(unittest.TestCase):
 	task = models.Task.query.first()
 	self.assertEquals(1, len(task.tags))
 
-    def execute_existing_tag(self, change_case):
+    def execute_existing_tag(self, change_case, two_lists = False):
 	self.user = models.db.session.merge(self.user)
 	self.list = models.db.session.merge(self.list)
 	self.user.lists = [self.list]
         task = self.setup_tasks(1)
         list = self.list
+	if two_lists:
+	    list2 = models.List(name="List2")
+	    self.tag = models.db.session.merge(self.tag)
+	    tag2 = models.Tag(name=self.tag.name)
+	    tag2.list = list
+	    self.tag.list = list2
+	    list.tags = [tag2]
+	    list2.tags = [self.tag]
+	    models.db.session.add(list2)
+	    models.db.session.add(tag2)
         models.db.session.commit()
 	task = models.Task.query.first()
         list = models.List.query.first()
         task.list = list.id
-        models.db.session.commit()
-	existing = models.Tag.query.first()
         task = models.Task.query.first()
+        task.tags = []
+        models.db.session.commit()
+	task = models.Task.query.first()
+	existing = models.Tag.query.first()
         before = len(models.Tag.query.all())
 	user = models.User.query.first()
 	name = existing.name
@@ -186,12 +199,18 @@ class TaskManagerTestCase(unittest.TestCase):
         self.assertEquals(0, after-before)
         task = models.Task.query.first()
         self.assertEquals(1, len(task.tags))
+	if two_lists:
+	    list = models.db.session.merge(list)
+	    self.assertEquals(list.id, task.tags[0].list)
 
     def test_add_existing_tag(self):
 	self.execute_existing_tag(False)
 
     def test_add_existing_tag_with_case(self):
         self.execute_existing_tag(True)
+
+    def test_add_existing_tag_two_lists(self):
+        self.execute_existing_tag(False, True)
 
     def test_tag_list(self):
 	models.db.session.commit()
@@ -257,6 +276,40 @@ class TaskManagerTestCase(unittest.TestCase):
         self.user.lists = [self.list]
         result = self.app.get("/tags/250")
         self.assertIn("401", result.status)
+
+    def test_remove_tag(self):
+	task = self.setup_tasks(1)
+        task.tags = [self.tag]
+        for i in range(10):
+	    tag2 = models.Tag(name="t" + str(i))
+   	    models.db.session.add(tag2)
+	    task.tags.append(tag2)
+	before = len(task.tags)
+	models.db.session.commit()
+
+        result = self.app.post("removeTag", data=dict(
+                taskId=str(task.id),tag=str(tag2.id)))
+	
+	task = models.db.session.merge(task)
+	after = len(task.tags)
+	self.assertEquals(1, before-after)
+	self.assertIn("200", result.status)
+
+    def test_remove_invalid_tag(self):
+        task = self.setup_tasks(1)
+        tag2 = models.Tag(name="t2")
+        tag3 = models.Tag(name="t3")
+        models.db.session.add(tag2)
+        models.db.session.add(tag3)
+        task.tags = [self.tag, tag2, tag3]
+        models.db.session.commit()
+
+        result = self.app.post("removeTag", data=dict(
+                taskId=str(task.id),tag=str(5000)))
+
+        task = models.Task.query.get(task.id)
+        self.assertEquals(3, len(task.tags))
+	self.assertIn("401", result.status)
 
 
 if __name__ == '__main__':

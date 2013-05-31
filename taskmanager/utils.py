@@ -25,14 +25,13 @@ def reorganize(new_list):
     return result 
 
 def find_tag(user_id, task_list, tag):
-    # TODO: Filter based on the user's ID or list...
-    tag_obj = Tag.query.filter(Tag.name.ilike(tag)).first()
+    list_obj = List.query.get(task_list)
+    tag_obj = Tag.query.filter(Tag.name.ilike(tag)).filter_by(list=task_list).first()
     app.logger.debug("tag: %s - list: %s"%(tag_obj, task_list))
     if tag_obj is not None:
 	return tag_obj
     tag_obj = Tag()
     tag_obj.name = tag
-    list_obj = List.query.get(task_list)
     list_obj.tags.append(tag_obj)
     db.session.add(tag_obj)
     return tag_obj
