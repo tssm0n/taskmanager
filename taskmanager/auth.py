@@ -1,7 +1,9 @@
 from models import *
 from flask import session
 from flask.ext.restless import ProcessingException
-from config import app
+from config import app, db
+import utils
+from models import *
 
 def check_auth():
     app.logger.debug("check_auth")
@@ -10,19 +12,21 @@ def check_auth():
 def api_auth(search_params=None, **kw):
     if not check_auth():
         raise ProcessingException(message='Not Authorized', status_code=401)
-    if search_params is None:
-        return
+    user = db.session.merge(session['user'])
+    if search_params is not None:
+        return _process_search(search_params, user)
+    if not 'instance_id' in kw:
+	return
+    task = Task.query.get(int(kw['instance_id']))
+    if not utils.list_id_valid_for_user(user, task.list):
+	raise ProcessingException(message='Not Authorized', status_code=401)
 
-    # TODO: Filter the results based on the user ID
-    # example: 
-    # Create the filter you wish to add; in this case, we include only
-    # instances with ``id`` not equal to 1.
-    #filt = dict(name='id', op='neq', val=1)
-    # Check if there are any filters there already.
-    #if 'filters' not in search_params:
-    #    search_params['filters'] = []
-    # *Append* your filter to the list of filters.
-    #search_params['filters'].append(filt)
+def _process_search(search_params, user):
+    filt = dict(name='list', op='in', val=[list.id for list in user.lists])
+    #filt = dict(name='id', op='in', val=[1,2,3,4,5,6,7])
+    if 'filters' not in search_params:
+	search_params['filters'] = []
+    search_params['filters'].append(filt)
 
 
 class authed:

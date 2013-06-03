@@ -311,6 +311,84 @@ class TaskManagerTestCase(unittest.TestCase):
         self.assertEquals(3, len(task.tags))
 	self.assertIn("401", result.status)
 
+    def _add_all_tasks_to_list(self):
+	self.list = models.db.session.merge(self.list)
+	self.user = models.db.session.merge(self.user)
+	tasks = models.Task.query.all()
+	for task in tasks:
+	    task.list = self.list.id
+	self.user.lists = [self.list]
+	models.db.session.commit()
+
+    def test_rest(self):
+	task = self.setup_tasks(2)
+	models.db.session.commit()
+	self._add_all_tasks_to_list()
+        result = self.app.get("/api/task", follow_redirects=False)
+	actual = json.loads(result.data)
+	self.assertEquals(2, len(actual['objects']))
+
+    def test_rest_tag(self):
+        models.db.session.commit()
+        result = self.app.get("/api/tag", follow_redirects=False)
+        actual = json.loads(result.data)
+        self.assertEquals(1, len(actual['objects']))
+
+    def test_result_change_task(self):
+	task = self.setup_tasks(2)
+        models.db.session.commit()
+	self._add_all_tasks_to_list()
+	task = models.db.session.merge(task)
+	result = self.app.put("/api/task/%s"%(task.id), content_type="application/json",\
+		data=json.dumps({"title":"Put!"}))
+	self.assertIn("200", result.status)
+        result = self.app.get("/api/task", follow_redirects=False)
+        actual = json.loads(result.data)
+        self.assertEquals(2, len(actual['objects']))
+	task = models.db.session.merge(task)
+	self.assertEquals("Put!", task.title)	
+
+    def test_rest_delete_task(self):
+        task = self.setup_tasks(2)
+        models.db.session.commit()
+	self._add_all_tasks_to_list()
+	task = models.db.session.merge(task)
+        result = self.app.delete("/api/task/%s"%(task.id))
+        self.assertIn("204", result.status)
+        result = self.app.get("/api/task", follow_redirects=False)
+        actual = json.loads(result.data)
+        self.assertEquals(1, len(actual['objects']))
+
+    def test_rest_task_permissions(self):
+	task1 = self.setup_tasks(1)
+	task2 = self.setup_tasks(2)
+	list2 = models.List(name="L2")
+	list3 = models.List(name="L3")
+	models.db.session.add(task1)
+        models.db.session.add(task2)
+        models.db.session.add(list2)
+        models.db.session.add(list3)
+	models.db.session.commit()
+	task1 = models.db.session.merge(task1)
+	task2 = models.db.session.merge(task2)
+	list2 = models.db.session.merge(list2)
+	list3 = models.db.session.merge(list3)
+	task1.list = list2.id
+	task2.list = list3.id
+	task1_id = task1.id
+	task2_id = task2.id
+	self.user = models.db.session.merge(self.user)
+	self.user.lists = [list2]
+	models.db.session.commit()
+        result = self.app.get("/api/task", follow_redirects=False)
+        actual = json.loads(result.data)
+        count = len(actual['objects'])
+	result = self.app.get("/api/task/%s"%(task1_id))
+        self.assertIn("200", result.status)
+        result = self.app.get("/api/task/%s"%(task2_id))
+        self.assertNotIn("200", result.status)
+	self.assertEquals(1, count)
+
 
 if __name__ == '__main__':
     unittest.main()

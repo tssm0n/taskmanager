@@ -168,6 +168,7 @@ def new_task():
 
 @app.route('/completeTask', methods=['POST'])
 def complete_task():
+# TODO: Check permissions
     task_id = request.form['taskId']
     task = Task.query.get(int(task_id))
     task.complete = not task.complete
@@ -176,6 +177,7 @@ def complete_task():
 
 @app.route('/changePriority', methods=['POST'])
 def change_priority():
+# TODO: Check permissions
     task_id = request.form['taskId']
     priority_index = request.form['priorityIndex']
     task = Task.query.get(int(task_id))   
