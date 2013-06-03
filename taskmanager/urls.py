@@ -23,10 +23,10 @@ manager.create_api(Task, methods=['GET','PUT','PATCH','DELETE'],
 	PUT_MANY=[api_auth], 
 	PATCH_SINGLE=[api_auth],
 	PATCH_MANY=[api_auth]))
-manager.create_api(Tag, methods=['GET'],
-        preprocessors=dict(GET_SINGLE=[api_auth],
-        GET_MANY=[api_auth]))
-#TODO: Implement pre and post processors on the rest API to filter available tasks
+#manager.create_api(Tag, methods=['GET'],
+#        preprocessors=dict(GET_SINGLE=[api_auth],
+#        GET_MANY=[api_auth]))
+#TODO: Implement REST API for Tags and Lists
 
 unmanaged_urls = ["login", "create_profile", "create_or_login", "logout"]
 

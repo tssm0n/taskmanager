@@ -331,8 +331,9 @@ class TaskManagerTestCase(unittest.TestCase):
     def test_rest_tag(self):
         models.db.session.commit()
         result = self.app.get("/api/tag", follow_redirects=False)
-        actual = json.loads(result.data)
-        self.assertEquals(1, len(actual['objects']))
+	self.assertNotIn("200", result.status)
+#        actual = json.loads(result.data)
+#        self.assertEquals(1, len(actual['objects']))
 
     def test_result_change_task(self):
 	task = self.setup_tasks(2)
