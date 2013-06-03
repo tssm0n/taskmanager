@@ -377,6 +377,7 @@ class TaskManagerTestCase(unittest.TestCase):
 	task2.list = list3.id
 	task1_id = task1.id
 	task2_id = task2.id
+	list2_id = list2.id
 	self.user = models.db.session.merge(self.user)
 	self.user.lists = [list2]
 	models.db.session.commit()
@@ -388,6 +389,24 @@ class TaskManagerTestCase(unittest.TestCase):
         result = self.app.get("/api/task/%s"%(task2_id))
         self.assertNotIn("200", result.status)
 	self.assertEquals(1, count)
+        result = self.app.delete("/api/task/%s"%(task2_id))
+	self.assertNotIn("200", result.status)
+        result = self.app.get("/api/task", follow_redirects=False)
+        actual = json.loads(result.data)
+        count = len(actual['objects'])
+	self.assertEquals(1, count)
+	task2 = models.Task.query.get(task2_id)
+	assert task2 is not None
+        task2_title = task2.title
+        result = self.app.put("/api/task/%s"%(task2_id), content_type="application/json",\
+                data=json.dumps({"title":"Put!"}))
+	task2 = models.Task.query.get(task2_id)
+        self.assertEquals(task2_title, task2.title)
+        result = self.app.put("/api/task/%s"%(task1_id), content_type="application/json",\
+                data=json.dumps({"title":"Put!"}))
+        task1 = models.Task.query.get(task1_id)
+        self.assertEquals("Put!", task1.title)
+
 
 
 if __name__ == '__main__':

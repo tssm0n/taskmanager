@@ -1,0 +1,133 @@
+.................EEEEEE
+======================================================================
+ERROR: test_rest_task_permissions (__main__.TaskManagerTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_web.py", line 400, in test_rest_task_permissions
+    models.db.session.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/scoping.py", line 114, in do
+    return getattr(self.registry(), name)(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 656, in commit
+    self.transaction.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 314, in commit
+    self._prepare_impl()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 298, in _prepare_impl
+    self.session.flush()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 1583, in flush
+    self._flush(objects)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 1654, in _flush
+    flush_context.execute()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/unitofwork.py", line 331, in execute
+    rec.execute(self)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/unitofwork.py", line 475, in execute
+    uow
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/persistence.py", line 64, in save_obj
+    table, insert)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/persistence.py", line 558, in _emit_insert_statements
+    execute(statement, params)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/engine/base.py", line 1449, in execute
+    params)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/engine/base.py", line 1584, in _execute_clauseelement
+    compiled_sql, distilled_params
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/engine/base.py", line 1698, in _execute_context
+    context)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/engine/base.py", line 1691, in _execute_context
+    context)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/engine/default.py", line 331, in do_execute
+    cursor.execute(statement, parameters)
+IntegrityError: (IntegrityError) task.title may not be NULL u'INSERT INTO task (title, priority, details, last_update, complete, list) VALUES (?, ?, ?, ?, ?, ?)' (None, None, None, '2013-06-02 23:01:03.728973', None, 2)
+
+======================================================================
+ERROR: test_rest_task_permissions (__main__.TaskManagerTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_web.py", line 41, in tearDown
+    models.db.session.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/scoping.py", line 114, in do
+    return getattr(self.registry(), name)(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 656, in commit
+    self.transaction.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 314, in commit
+    self._prepare_impl()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 288, in _prepare_impl
+    self._assert_is_active()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 174, in _assert_is_active
+    % self._rollback_exception
+InvalidRequestError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (IntegrityError) task.title may not be NULL u'INSERT INTO task (title, priority, details, last_update, complete, list) VALUES (?, ?, ?, ?, ?, ?)' (None, None, None, '2013-06-02 23:01:03.728973', None, 2)
+
+======================================================================
+ERROR: test_result_change_task (__main__.TaskManagerTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_web.py", line 32, in setUp
+    models.db.session.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/scoping.py", line 114, in do
+    return getattr(self.registry(), name)(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 656, in commit
+    self.transaction.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 314, in commit
+    self._prepare_impl()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 288, in _prepare_impl
+    self._assert_is_active()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 174, in _assert_is_active
+    % self._rollback_exception
+InvalidRequestError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (IntegrityError) task.title may not be NULL u'INSERT INTO task (title, priority, details, last_update, complete, list) VALUES (?, ?, ?, ?, ?, ?)' (None, None, None, '2013-06-02 23:01:03.728973', None, 2)
+
+======================================================================
+ERROR: test_root (__main__.TaskManagerTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_web.py", line 32, in setUp
+    models.db.session.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/scoping.py", line 114, in do
+    return getattr(self.registry(), name)(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 656, in commit
+    self.transaction.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 314, in commit
+    self._prepare_impl()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 288, in _prepare_impl
+    self._assert_is_active()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 174, in _assert_is_active
+    % self._rollback_exception
+InvalidRequestError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (IntegrityError) task.title may not be NULL u'INSERT INTO task (title, priority, details, last_update, complete, list) VALUES (?, ?, ?, ?, ?, ?)' (None, None, None, '2013-06-02 23:01:03.728973', None, 2)
+
+======================================================================
+ERROR: test_sort (__main__.TaskManagerTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_web.py", line 32, in setUp
+    models.db.session.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/scoping.py", line 114, in do
+    return getattr(self.registry(), name)(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 656, in commit
+    self.transaction.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 314, in commit
+    self._prepare_impl()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 288, in _prepare_impl
+    self._assert_is_active()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 174, in _assert_is_active
+    % self._rollback_exception
+InvalidRequestError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (IntegrityError) task.title may not be NULL u'INSERT INTO task (title, priority, details, last_update, complete, list) VALUES (?, ?, ?, ?, ?, ?)' (None, None, None, '2013-06-02 23:01:03.728973', None, 2)
+
+======================================================================
+ERROR: test_tag_list (__main__.TaskManagerTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "./test_web.py", line 32, in setUp
+    models.db.session.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/scoping.py", line 114, in do
+    return getattr(self.registry(), name)(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 656, in commit
+    self.transaction.commit()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 314, in commit
+    self._prepare_impl()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 288, in _prepare_impl
+    self._assert_is_active()
+  File "/usr/local/lib/python2.7/dist-packages/sqlalchemy/orm/session.py", line 174, in _assert_is_active
+    % self._rollback_exception
+InvalidRequestError: This Session's transaction has been rolled back due to a previous exception during flush. To begin a new transaction with this Session, first issue Session.rollback(). Original exception was: (IntegrityError) task.title may not be NULL u'INSERT INTO task (title, priority, details, last_update, complete, list) VALUES (?, ?, ?, ?, ?, ?)' (None, None, None, '2013-06-02 23:01:03.728973', None, 2)
+
+----------------------------------------------------------------------
+Ran 22 tests in 5.970s
+
+FAILED (errors=6)

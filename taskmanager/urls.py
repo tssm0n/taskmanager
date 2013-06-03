@@ -17,7 +17,12 @@ oid = OpenID(app, oid_file)
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Task, methods=['GET','PUT','PATCH','DELETE'],
         preprocessors=dict(GET_SINGLE=[api_auth],
-        GET_MANY=[api_auth]))
+        GET_MANY=[api_auth], 
+	DELETE=[api_auth], 
+	PUT_SINGLE=[api_auth],
+	PUT_MANY=[api_auth], 
+	PATCH_SINGLE=[api_auth],
+	PATCH_MANY=[api_auth]))
 manager.create_api(Tag, methods=['GET'],
         preprocessors=dict(GET_SINGLE=[api_auth],
         GET_MANY=[api_auth]))
