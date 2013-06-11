@@ -72,6 +72,7 @@ class List(db.Model):
 	primaryjoin="and_(Task.list==List.id, Task.complete==False)",
 	order_by=desc(Task.priority))
     tags = db.relationship("Tag", order_by="Tag.name")
+    inactive = db.Column(db.Boolean,nullable=False,default=False)
 
 class Options(db.Model):
     id = db.Column(db.Integer, primary_key=True)

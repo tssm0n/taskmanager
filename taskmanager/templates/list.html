@@ -51,6 +51,10 @@
 	float: right;
         padding-right: 30px;
     }
+    .mainMenu {
+        float: right;
+        padding-right: 30px;
+    }
     .notesBox {
 	width: 100%;
     }
@@ -247,14 +251,22 @@
 		$("#item" + tagId + "AddTagSpan").toggle();
 		$("#item" + tagId + "AddTag").focus();
 	}
+	var editingTitle = -1;
 	function editTitle(taskId){
+		if(editingTitle != -1){
+			updateTitle(editingTitle, $("#titleBox"+taskId));
+			return;
+		}
 		loadTask(taskId, function(task){
+			editingTitle = taskId;
 			var html = "<input type='text' value='" + task.title + 
-				"' onchange='updateTitle(" + taskId + ", this)' class='titleBox'></input>";
+				"' onchange='updateTitle(" + taskId + ", this)' id='titleBox" + taskId +
+				"' class='titleBox'></input>";
 			$("#item" + taskId + "Title").html(html);			
 		});
 	}
 	function updateTitle(taskId, inputField){
+		editingTitle = -1;
 		var title = $(inputField).val();
 		$("#item" + taskId + "Title").html(title);
 		changeTask(taskId, {"title": title});
@@ -267,7 +279,7 @@
 		loadTask(taskId, function(task) {
 			var tagText = "";
 			tags = jQuery.map(task.tags, function(tag) {
-				tagText += '<span onclick="removeTag(' + taskId + ',' + tag.id;
+				tagText += '<span title="Delete Tag" onclick="removeTag(' + taskId + ',' + tag.id;
 				tagText += ',\'' + tag.name + '\')">'; 
 				tagText += tag.name + "</span> &nbsp;";
 				return tag.name;
@@ -297,6 +309,15 @@
 		changeTask(taskId, {"details": details});
 		cancelNote(taskId);	
 	}
+	function deleteList(){
+		if(!confirm("Are you sure you would like to delete the current list?")){
+			return false;
+		}
+		$.post(urlRoot + "removeList", {listId: {{ session['selected_list'] }} }, function(data){
+			window.location="{{ urlRoot }}list";
+		});	
+		// TODO: Handle error
+	}
 </script>
 
 </head>
@@ -304,7 +325,20 @@
 <body>
 
 <div class="list">
-<div id="userName">Welcome {{ session['user'].name }}. <span class="logout"><a href="{{ urlRoot }}logout">Logout</a><span></div>
+<div id="userName">Welcome {{ session['user'].name }}.
+<span class="logout">
+        <a href="{{ urlRoot }}logout">Logout</a>
+</span>
+<span class="mainMenu">
+	<span class="ui-icon ui-icon-triangle-1-s" title="Options" style="display:inline-block" onclick="$('#mainMenu').toggle(); return false;"></span><a href="" onclick="$('#mainMenu').toggle(); return false;">Options</a>
+	<span id="mainMenu" style="display:none">
+		<ul>
+			<li><a href="#" onclick="deleteList();return false;">Delete List</a></li>
+			<li>...</li>
+		</ul>
+	</span>
+</span>
+</div>
 <div id="lists"><select id="selectList" name="selectList" onchange="changeList()"
 	class="ui-button ui-widget ui-state-default ui-corner-all">
 		{% for list in lists %}

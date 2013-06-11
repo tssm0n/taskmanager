@@ -131,6 +131,7 @@ def view_list(tagid=None, listid=None):
     app.logger.debug("Tag: %s, List: %s, Saved List: %s, Passed List: %s"%(tagid, listid, session['selected_list'], selected_list))
     current_list = List.query.get(selected_list)
     lists = user.lists
+    lists = [list for list in lists if not list.inactive]
 
     items = utils.find_tasks(tagid, selected_list, False)
 
@@ -224,6 +225,17 @@ def add_list():
     user.lists.append(new_list)
     db.session.commit()
     return redirect(url_for('view_list', listid = new_list.id))
+
+@app.route('/removeList', methods=['POST'])
+def remove_list():
+    list_id = int(request.form['listId'])
+    user = db.session.merge(session['user'])
+    if not utils.list_id_valid_for_user(user, list_id):
+        return Response("Access Denied", 401)
+    list = List.query.get(list_id)
+    list.inactive = True
+    db.session.commit()
+    return "OK"
 
 @app.route('/tags/<listid>', methods=['GET'])
 def get_tags(listid):
