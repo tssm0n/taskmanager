@@ -1,0 +1,57 @@
+	body,
+	html {
+		margin:0;
+		padding:0;
+		color:#000;
+	}
+
+    .sortable {
+    	float:left;
+    	width:85%;
+	padding:3px;
+    }
+    #tagdiv {
+   	float:left;
+    	width:170px;
+	list-style-type: none;
+	border-style: dotted;
+	border-width: 1px;
+    }
+    #tags {
+	list-style-type: none;
+    }
+
+    ul {
+	list-style-type: none;
+    }
+    .task_title {
+	display:inline-block;
+	width: 40%;
+    }
+    .task_tags {
+	font-style: italic;
+    }
+    .icon-border {
+        display: inline-block 
+    }
+    h3 {
+	margin: 0;
+    }
+    .taskListContainer {
+	overflow: auto;
+    }
+    .logout {
+	float: right;
+        padding-right: 30px;
+    }
+    .mainMenu {
+        float: right;
+        padding-right: 30px;
+    }
+    .notesBox {
+	width: 100%;
+    }
+    .titleBox {
+	width: 60%;
+	min-width: 150px;
+    }

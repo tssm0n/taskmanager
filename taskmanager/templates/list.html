@@ -1,71 +1,17 @@
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<script language="JavaScript" src="{{ urlRoot }}static/js/jquery-1.7.2.min.js"></script>
-	<script language="JavaScript" src="{{ urlRoot }}static/js/jquery-ui-1.8.22.custom.min.js"></script>	
+	<script src="{{ urlRoot }}static/js/jquery-1.7.2.min.js" type="text/javascript"></script>
+	<script src="{{ urlRoot }}static/js/jquery-ui-1.8.22.custom.min.js" type="text/javascript"></script>	
+	<script src="{{ urlRoot }}static/js/tasks.js" type="text/javascript"></script>	
 	<link rel="stylesheet" type="text/css" href="{{ urlRoot }}static/css/cupertino/jquery-ui-1.8.22.custom.css" />
-	<style type="text/css">
-
-	body,
-	html {
-		margin:0;
-		padding:0;
-		color:#000;
-	}
-
-    .sortable {
-    	float:left;
-    	width:85%;
-	padding:3px;
-    }
-    #tagdiv {
-   	float:left;
-    	width:170px;
-	list-style-type: none;
-	border-style: dotted;
-	border-width: 1px;
-    }
-    #tags {
-	list-style-type: none;
-    }
-
-    ul {
-	list-style-type: none;
-    }
-    .task_title {
-	display:inline-block;
-	width: 40%;
-    }
-    .task_tags {
-	font-style: italic;
-    }
-    .icon-border {
-        display: inline-block 
-    }
-    h3 {
-	margin: 0;
-    }
-    .taskListContainer {
-	overflow: auto;
-    }
-    .logout {
-	float: right;
-        padding-right: 30px;
-    }
-    .mainMenu {
-        float: right;
-        padding-right: 30px;
-    }
-    .notesBox {
-	width: 100%;
-    }
-    .titleBox {
-	width: 60%;
-	min-width: 150px;
-    }
-</style>
-<script>
+	<link rel="stylesheet" type="text/css" href="{{ urlRoot }}static/css/tasks.css" />
+	<title>Tasks</title>
+<script type="text/javascript">
 	var itemOrder = jQuery.parseJSON('{{ itemOrder|safe }}');
-        var urlRoot = '{{ urlRoot }}';
+    var urlRoot = '{{ urlRoot }}';
+	var selectedList = '{{ session['selected_list'] }}';
 	
 	$.ajaxSetup ({
     	cache: false
@@ -87,237 +33,18 @@
 					for(var i in result){
 						$("#" + i + "Priority").val(result[i]);
 					}
-				});
+				}).fail(function(data){ alert("An error occurred, unable to complete the request.")});
 			}
 		});
 		updateTagAutocomplete();		
 		$("#removeTag").click(function(){ 
 			changeList();
 		 });
+		 $("#newListName").attr("autocomplete", false);
+		 $("#newTitle").attr("autocomplete", false);
 	});
 
-	var autocompleting = false;
-	var addTagRegex = /item(\d+)AddTag/;
 
-	function updateTagAutocomplete(){
-		$.get("{{ urlRoot }}tags/{{ session['selected_list'] }}", function(data){
-			var tagValues = jQuery.parseJSON(data);
-			$('input[id$="AddTag"]').autocomplete({source: tagValues});
-			$('input[id$="AddTag"]').on("autocompleteclose", function(event, ui){ 
-				autocompleting = false;
-			});
-                        $('input[id$="AddTag"]').on("autocompleteopen", function(event, ui){
-                                autocompleting = true;
-                        });
-                        $('input[id$="AddTag"]').on("autocompleteselect", function(event, ui){
-                                autocompleting = false;
-				item = findItemNumber(event.currentTarget.name);
-				$("#item" + item + "AddTag").val(ui.item.value);
-				addTag(findItemNumber(event.currentTarget.name));
-                        });
-
-		});
-
-	}
-
-	function findItemNumber(field){
-		return addTagRegex.exec(field)[1];
-	}
-
-	function newTask(){
-		$("#newTaskPos").toggle();
-		$("#newTitle").focus();
-	}
-
-	function newList(){
-		$("#newListPos").toggle();
-		$("#newListName").focus();
-	}
-	
-	function saveNew(){
-		var title = "" + $("#newTitle").val();
-		$.post(urlRoot + "newTask", {title: title, listId: {{ session['selected_list'] }} }, function(data){
-			$(".sortable").prepend(data);
-			$("[id$=AddTagSpan]").hide();
-			$("#newTitle").val("");
-			$("#newTaskPos").hide();
-			updateTagAutocomplete();
-		});		
-		// TODO: Handle error
-	}
-	function completeTask(taskId){
-		$.post(urlRoot + "completeTask", {taskId: taskId}, function(data){
-			setTimeout(function() { hideCompleted(taskId) }, 4000)
-		});
-	}
-        function hideCompleted(taskId){
-	    if($("#done" + taskId).is(':checked')){
-		$("#item" + taskId).hide();
-	    }
-	}
-	function changePriority(taskId, selectBox){
-		$.post(urlRoot + "changePriority", {taskId: taskId, priorityIndex: selectBox.selectedIndex+1}, function(data){
-			var key = "item" + taskId;
-			var dataValue = Number(data);
-			itemOrder[key] = dataValue;
-			var prev = findPreviousId(dataValue);
-			if(prev == null){
-				var cur = $("#" + key).prev();
-				while(cur.length > 0 && cur.prev().length > 0){
-					cur = cur.prev();
-				}
-				$("#" + key).insertBefore(cur);
-			} else {
-				var prevElement = $("#" + prev);
-				while(prevElement.next().length > 0 && itemOrder[prevElement.next().attr("id")] == itemOrder[prev]){
-					prevElement = prevElement.next();
-					prev = prevElement.attr("id");
-				}
-				$("#" + prev).after($("#" + key));
-			}
-
-		});		
-	}
-	function findPreviousId(value){
-		var prev = null;
-		for(var item in itemOrder){
-			var nextValue = itemOrder[item];
-			if(nextValue > value){
-				if(prev == null || itemOrder[prev] > nextValue){
-					prev = item;
-				}
-			}
-			
-		}
-		return prev;
-	}
-	function changeList(){
-		var listid = $("#selectList").val();
-		window.location = urlRoot + "list/" + listid;
-	}
-	
-	function changeTag(tagId){
-		window.location = urlRoot + "listtag/" + tagId;
-	}
-
-	function changeTask(taskId, fields){
-		$.ajax({url: urlRoot + "api/task/" + taskId,
-			type: "PUT",
-			data: JSON.stringify(fields),
-			headers: {"Content-Type": "application/json"},
-			dataType: "json"});
-		// TODO: Handle error
-	}
-
-	function deleteItem(taskId){
-		if(confirm("Are You Sure You Would Like To Delete This Task?")){
-			$.ajax({url: urlRoot + "api/task/" + taskId,
-			type: "DELETE",
-			success: function(){
-				$("#item" + taskId).hide();
-			}});
-		} 
-		// TODO: Handle error
-	}
-	
-	function removeTag(taskId, tagId, tagName){
-		if(!confirm("Remove Tag " + tagName + "?")){
-			return false;
-		}
-		$.post(urlRoot + "removeTag", {"taskId": taskId, "tag": tagId}, function(data) {
-			updateTaskView(taskId);
-		});
-		// TODO: Error handling
-	}
-
-	function addTag(taskId){
-		if(autocompleting){
-			return false;
-		}
-		var tags = $("#item" + taskId + "AddTag").val();
-		if(tags.trim() == ""){
-			return;
-		}
-		$.post(urlRoot + "addTag", {"taskId" : taskId, "tag": tags}, function(data) {
-			$("#item" + taskId + "AddTagSpan").hide();
-			$("#item" + taskId + "AddTag").val("");
-			updateTagAutocomplete();
-			updateTaskView(taskId);
-			$("#tagdiv").html(data);
-		}).fail(function() { alert("Error adding tag") });
-	}
-
-	function tagBox(tagId){
-		$("#item" + tagId + "AddTagSpan").toggle();
-		$("#item" + tagId + "AddTag").focus();
-	}
-	var editingTitle = -1;
-	function editTitle(taskId){
-		if(editingTitle != -1){
-			updateTitle(editingTitle, $("#titleBox"+taskId));
-			return;
-		}
-		loadTask(taskId, function(task){
-			editingTitle = taskId;
-			var html = "<input type='text' value='" + task.title + 
-				"' onchange='updateTitle(" + taskId + ", this)' id='titleBox" + taskId +
-				"' class='titleBox'></input>";
-			$("#item" + taskId + "Title").html(html);			
-		});
-	}
-	function updateTitle(taskId, inputField){
-		editingTitle = -1;
-		var title = $(inputField).val();
-		$("#item" + taskId + "Title").html(title);
-		changeTask(taskId, {"title": title});
-	}
-	function loadTask(taskId, callback){
-                $.get(urlRoot + "api/task/" + taskId, callback);
-		// TODO: Handle failure
-	}
-	function updateTaskView(taskId){
-		loadTask(taskId, function(task) {
-			var tagText = "";
-			tags = jQuery.map(task.tags, function(tag) {
-				tagText += '<span title="Delete Tag" onclick="removeTag(' + taskId + ',' + tag.id;
-				tagText += ',\'' + tag.name + '\')">'; 
-				tagText += tag.name + "</span> &nbsp;";
-				return tag.name;
-			});
-			$("#item" + task.id + "Tags").html(tagText);
-		});
-	}
-	function noteBox(taskId){
-		var pos = $("#item" + taskId);
-		var name = 'notesBox'+taskId;
-		if($("#" + name + "li").length > 0){
-			cancelNote(taskId);
-			return;
-		}
-		loadTask(taskId, function(task) {
-			var textbox = "<li id='"+name+"li'><textarea class='notesBox' id='"+name+"' name='"+name+"'></textarea>" +
-				"<button onclick='saveNote("+taskId+")'>Save</button> <button onclick='cancelNote("+taskId+")'>Cancel</button>";
-			pos.append(textbox);
-			$("#" + name).val(task.details);
-		});
-	}
-	function cancelNote(taskId){
-		$("#notesBox" + taskId + "li").remove();
-	}
-	function saveNote(taskId){
-		var details = $("#notesBox"+taskId).val();
-		changeTask(taskId, {"details": details});
-		cancelNote(taskId);	
-	}
-	function deleteList(){
-		if(!confirm("Are you sure you would like to delete the current list?")){
-			return false;
-		}
-		$.post(urlRoot + "removeList", {listId: {{ session['selected_list'] }} }, function(data){
-			window.location="{{ urlRoot }}list";
-		});	
-		// TODO: Handle error
-	}
 </script>
 
 </head>
@@ -329,32 +56,32 @@
 <span class="logout">
         <a href="{{ urlRoot }}logout">Logout</a>
 </span>
-<span class="mainMenu">
-	<span class="ui-icon ui-icon-triangle-1-s" title="Options" style="display:inline-block" onclick="$('#mainMenu').toggle(); return false;"></span><a href="" onclick="$('#mainMenu').toggle(); return false;">Options</a>
-	<span id="mainMenu" style="display:none">
+<div class="mainMenu">
+	<span class="ui-icon ui-icon-triangle-1-s" title="Options" style="display:inline-block" onclick="$('#mainMenu').toggle(); return false;"></span><a href="#" onclick="$('#mainMenu').toggle(); return false;">Options</a>
+	<div id="mainMenu" style="display:none">
 		<ul>
 			<li><a href="#" onclick="deleteList();return false;">Delete List</a></li>
 			<li>...</li>
 		</ul>
-	</span>
-</span>
+	</div>
+</div>
 </div>
 <div id="lists"><select id="selectList" name="selectList" onchange="changeList()"
 	class="ui-button ui-widget ui-state-default ui-corner-all">
 		{% for list in lists %}
 			<option value="{{ list.id }}"
 				{% if list.id == selectedList %}
-					selected="true"
+					selected="selected"
 				{% endif %}>{{ list.name }}</option>
 		{% endfor %}
 	
 </select>
 <div><a href="#" onclick="newList()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New List</a></div>
 <div id="newListPos">
-	<form method="post" action="{{ urlRoot }}addList">
-             Name: <input type="text" name="newListName" id="newListName" autocomplete="off">&nbsp;
+	<form method="post" action="{{ urlRoot }}addList"><p>
+             Name: <input type="text" name="newListName" id="newListName"/>&nbsp;
              <input type="submit" value="Save"></input>
-        </form>
+        </p></form>
 </div>
 </div>
 <div id="tagdiv" class="ui-widget-content">
@@ -367,8 +94,8 @@
 {% endif %}
 <div><a href="#" onclick="newTask()"><span class="icon-border"><span class="ui-icon ui-icon-circle-plus"></span></span> New Task</a></div>
 <div id="newTaskPos">
-	Title: <input type="text" name="newTitle" id="newTitle" autocomplete="off" class="titleBox">&nbsp;
-	<input type="button" onclick="saveNew()" value="Save"></button>
+	Title: <input type="text" name="newTitle" id="newTitle" class="titleBox"/>&nbsp;
+	<input type="button" onclick="saveNew()" value="Save"/>
 </div>
 <div class="taskListContainer">
 <ul id="listitems1" class="sortable">
