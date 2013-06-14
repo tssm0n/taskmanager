@@ -1,1 +1,1 @@
-Simple task manager based on python, flask, sqlalchemy and jquery.
+Simple task manager based on python, flask, sqlalchemy and jquery.  Includes support for drag and drop organization of tasks, multiple users logging in with openID, and sharable task lists.
