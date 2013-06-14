@@ -5,13 +5,11 @@ from sqlalchemy import distinct
 from flask.ext.openid import OpenID
 import json
 import logging
-import tempfile
 from models import *
 from config import *
 from auth import *
 import utils
 
-oid_file = tempfile.mkdtemp()
 oid = OpenID(app, oid_file)
 
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)

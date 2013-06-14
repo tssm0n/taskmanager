@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import logging
+import tempfile
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -14,6 +15,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_POOL_RECYCLE'] = 3600
 db = SQLAlchemy(app)
 
-#TODO: Set up a handler to log to a file
+oid_file = tempfile.mkdtemp()
 
 
